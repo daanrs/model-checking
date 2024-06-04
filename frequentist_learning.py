@@ -2,30 +2,27 @@ import stormpy
 import stormpy.examples
 import stormpy.examples.files
 
-path = stormpy.examples.files.prism_dtmc_die
-prism_program = stormpy.parse_prism_program(path)
-model = stormpy.build_model(prism_program)
-
-n_1 = 5
-n_2 = 8
-n = n_1 + n_2
-
-builder = stormpy.SparseMatrixBuilder(rows=0, columns=0, entries=0, force_dimensions=False, has_custom_row_grouping=True, row_groups=0)
-builder.new_row_group(0)
-builder.add_next_value(0, 1, n_1 / n)
-builder.add_next_value(0, 2, n_2 / n)
-builder.new_row_group(1)
-builder.add_next_value(1, 1, 1)
-builder.new_row_group(2)
-builder.add_next_value(2, 2, 1)
+def build_matrix_from_data(x):
+    builder = stormpy.SparseMatrixBuilder(rows=0, columns=0, entries=0, force_dimensions=False, has_custom_row_grouping=True, row_groups=0)
 
 
-transition_matrix = builder.build()
+    current_state = x[0, 0]
+    builder.new_row_group(current_state)
+    nr_states = 1
 
-state_labeling = stormpy.storage.StateLabeling(3)
-labels = {'init', 'one', 'two'}
-for label in labels:
-    state_labeling.add_label(label)
+    for row in x:
+        if row[0] != current_state:
+            builder.new_row_group(row[0])
+            current_state = row[0]
+            nr_states += 1
+        builder.add_nerowt_value(row[1], row[2], row[3])
+        
+    transition_matrix = builder.build()
+
+    state_labeling = stormpy.storage.StateLabeling(nr_states)
+    labels = ( f"state_{i}" for i in range(0, nr_states))
+    for label in labels:
+        state_labeling.add_label(label)
 
 
 
