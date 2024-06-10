@@ -3,11 +3,9 @@ import stormpy
 def build_matrix_from_data(frequencies):
     builder = stormpy.SparseMatrixBuilder(rows=0, columns=0, entries=0, force_dimensions=False, has_custom_row_grouping=True, row_groups=0)
     sorted_keys = sorted(frequencies)
-    print(sorted_keys)
 
     current_state = -1
     current_action = -1
-    number_states = 0
     number_actions = 0
     number_actions_per_state = 0
 
@@ -20,7 +18,6 @@ def build_matrix_from_data(frequencies):
             print("New group: ", number_actions)
             builder.new_row_group(number_actions)
             current_state = state_from
-            number_states += 1
         if action != current_action:
             number_actions_per_state += 1
             current_action = action
@@ -30,6 +27,7 @@ def build_matrix_from_data(frequencies):
         builder.add_next_value(action, state_to, probability)
         
     transition_matrix = builder.build()
+    number_states = transition_matrix.nr_columns
 
     state_labeling = stormpy.storage.StateLabeling(number_states)
     labels = ( f"state_{i}" for i in range(0, number_states))

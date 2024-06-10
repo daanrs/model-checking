@@ -1,6 +1,13 @@
 import stormpy
 import stormpy.examples.files
 import pycarl
+import random
+
+from collections import Counter
+from simulation import simulate
+from frequentist_learning import build_matrix_from_data
+
+random.seed(10)
 
 def create_uMdp_matrix(mdp, epsilon):
     builder = stormpy.IntervalSparseMatrixBuilder(rows=0, columns=0, entries=0, force_dimensions=False, has_custom_row_grouping=True, row_groups=0)
@@ -30,8 +37,12 @@ maze_final = stormpy.build_model(maze_model)
 
 # print(maze_final)
 
-m = create_uMdp_matrix(maze_final, 0.2)
-print(m)
+# m = create_uMdp_matrix(maze_final, 0.2)
+# print(m)
 
 # print(maze_final.transition_matrix)
 
+frequencies = simulate(maze_final)
+
+mdp = build_matrix_from_data(frequencies)
+print(mdp)

@@ -3,7 +3,8 @@ import stormpy.simulator
 import random
 from collections import Counter
 
-def simulate(model, num_paths = 30, max_path_length = 20):
+def simulate(model, num_paths = 100, max_path_length = 200):
+    stop_next_round = False
     simulator = stormpy.simulator.create_simulator(model, seed=42)
     frequencies = Counter() # (state_from, action, state_to) -> frequency
     total_frequencies = Counter() # (state, action) -> frequency
@@ -15,10 +16,13 @@ def simulate(model, num_paths = 30, max_path_length = 20):
             state_to, reward, labels = simulator.step(actions[select_action])
             frequencies[(state_from, actions[select_action], state_to)] += 1
             total_frequencies[(state_from, actions[select_action])] += 1
-            if simulator.is_done():
-                break
             state_from = state_to
+            if stop_next_round:
+                stop_next_round = False
+                break
+            if simulator.is_done():
+                stop_next_round = True
     
     for key in frequencies:
-        frequencies[key] /= total_frequencies[(key[0], key[1])] # turn freuqencies into probabilities
+        frequencies[key] /= total_frequencies[(key[0], key[1])] # turn frequencies into probabilities
     return frequencies
