@@ -10,8 +10,10 @@ def init_uniform_prior(model, alpha):
         for transition in action.transitions
     }
 
+
 def map(model, measurement, prior):
     return update_mdp(model, map_create_matrix(model, measurement, prior))
+
 
 def map_create_matrix(model, measurement, prior):
     builder = stormpy.SparseMatrixBuilder(
@@ -60,7 +62,6 @@ def map_create_matrix(model, measurement, prior):
 
     return matrix
 
-
     
 if __name__ == "__main__":
     model_file = stormpy.examples.files.prism_mdp_slipgrid
@@ -74,4 +75,3 @@ if __name__ == "__main__":
     print (map_model)
 
     print(map_model.transition_matrix)
-
