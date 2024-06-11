@@ -12,14 +12,27 @@ class Measurement:
         self.frequencies[(state_from, action, state_to)] += 1
         self.total_frequencies[(state_from, action)] += 1
 
+    # TODO(daan): remove
     def probabilities(self):
         return {
             key: self.frequencies[key] / self.total_frequencies[(key[0], key[1])] 
             for key in self.frequencies
         }
 
-    def sparseMatrix(self):
-        builder = stormpy.SparseMatrixBuilder(rows=0, columns=0, entries=0, force_dimensions=False, has_custom_row_grouping=True, row_groups=0)
+    def get_frequency(self, state_from, action, state_to):
+        return self.frequencies[(state_from, action, state_to)]
+
+    def get_total_frequency(self, state_from, action):
+        return self.total_frequencies([state_from, action])
+
+    def get_probability(self, state_from, action, state_to):
+        if self.total_frequencies[(state_from, action)] == 0:
+            raise Exception("Tried to get probability for a state-action pair which has never been measured")
+        else:
+            return (
+                self.frequencies[(state_from, action, state_to)] 
+                / self.total_frequencies[(state_from, action)]
+            )
     
 
 def simulate(model, num_paths = 100, max_path_length = 200, measurement = Measurement()):
