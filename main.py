@@ -5,7 +5,6 @@ import random
 
 from collections import Counter
 from simulation import simulate
-from pac_learning import pac_learning
 
 random.seed(10)
 
@@ -54,12 +53,12 @@ if __name__ == "__main__":
 
     slipgrid = stormpy.parse_prism_program(stormpy.examples.files.prism_mdp_slipgrid)
     slipgrid_model = stormpy.build_model(slipgrid)
+    print(slipgrid_model.transition_matrix)
 
     frequencies = simulate(slipgrid_model)
     probabilities = frequencies.probabilities()
 
     uMdp_matrix = create_uMdp_matrix(slipgrid_model, 0.1)
     uMdp_model = update_interval_mdp(slipgrid_model, uMdp_matrix)
-    pac_matrix = pac_learning(uMdp_model, frequencies, 0.1)
-    pac_imdp = update_interval_mdp(slipgrid_model, pac_matrix)
-    print(pac_imdp)
+    print(uMdp_model)
+    print(uMdp_model.transition_matrix)

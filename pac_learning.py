@@ -2,9 +2,13 @@ import stormpy
 import pycarl
 import math
 
-from simulation import Measurement
+from main import *
 
-def pac_learning(model, frequencies, error_rate = 0.1):
+def pac(model, measurement, error_rate = 0.1):
+    matrix = pac_create_matrix(model, measurement, error_rate)
+    return update_interval_mdp(model, matrix)
+
+def pac_create_matrix(model, frequencies, error_rate = 0.1):
     # probability estimates from frequentist learning
     probability_estimates = frequencies.probabilities()
 
@@ -39,5 +43,18 @@ def pac_learning(model, frequencies, error_rate = 0.1):
         number_actions += len(state.actions)
     
     transition_matrix = builder.build()
-    # return update_interval_mdp(model=model, new_matrix=transition_matrix)
+
     return transition_matrix
+
+    
+if __name__ == "__main__":
+    model_file = stormpy.examples.files.prism_mdp_slipgrid
+    model_model = stormpy.parse_prism_program(model_file)
+    model = stormpy.build_model(model_model)
+
+    measurement = simulate(model)
+
+    pac = pac(model, measurement)
+    print(pac)
+
+    print(pac.transition_matrix)
