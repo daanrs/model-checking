@@ -17,6 +17,9 @@ class Measurement:
             key: self.frequencies[key] / self.total_frequencies[(key[0], key[1])] 
             for key in self.frequencies
         }
+
+    def sparseMatrix(self):
+        builder = stormpy.SparseMatrixBuilder(rows=0, columns=0, entries=0, force_dimensions=False, has_custom_row_grouping=True, row_groups=0)
     
 
 def simulate(model, num_paths = 100, max_path_length = 200, measurement = Measurement()):
