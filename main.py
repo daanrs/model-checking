@@ -87,11 +87,14 @@ maze = stormpy.examples.files.prism_mdp_maze
 maze_model = stormpy.parse_prism_program(maze)
 maze_final = stormpy.build_model(maze_model)
 
-frequencies = simulate(maze_final)
+slipgrid = stormpy.parse_prism_program(stormpy.examples.files.prism_mdp_slipgrid)
+slipgrid_model = stormpy.build_model(slipgrid)
+
+frequencies = simulate(slipgrid_model)
 probabilities = frequencies.probabilities()
 
-uMdp_matrix = create_uMdp_matrix(maze_final, 0.1)
-uMdp_model = update_interval_mdp(maze_final, uMdp_matrix)
+uMdp_matrix = create_uMdp_matrix(slipgrid_model, 0.1)
+uMdp_model = update_interval_mdp(slipgrid_model, uMdp_matrix)
 pac_matrix = pac_learning(uMdp_model, frequencies, 0.1)
-pac_imdp = update_interval_mdp(maze_final, pac_matrix)
+pac_imdp = update_interval_mdp(slipgrid_model, pac_matrix)
 print(pac_imdp)
