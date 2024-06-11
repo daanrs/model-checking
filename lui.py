@@ -4,14 +4,12 @@ from main import *
 from simulation import simulate
 
 def init_strengths(model, lower, upper):
-    strengths = {
+    return {
         (state.id, action.id, transition.column): (lower, upper)
         for state in model.states
         for action in state.actions
         for transition in action.transitions
     }
-    return strengths
-
 
 def lui_init(model, epsilon = 0.2 , lower=0, upper=10):
     matrix = create_uMdp_matrix(model, epsilon)
