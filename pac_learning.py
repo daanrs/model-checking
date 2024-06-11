@@ -2,9 +2,7 @@ import stormpy
 import pycarl
 import math
 
-from frequentist_learning import frequentist_learning
 from simulation import Measurement
-from main import update_interval_mdp
 
 def pac_learning(model, frequencies, error_rate = 0.1):
     # probability estimates from frequentist learning
@@ -29,10 +27,17 @@ def pac_learning(model, frequencies, error_rate = 0.1):
 
             act = action.id + number_actions
             for transition in action.transitions:
-                estimate = probability_estimates[state.id, act, transition.column]
-                pac_interval = pycarl.Interval(max(0, estimate - delta_M), min(1, estimate + delta_M))
-                builder.add_next_value(act, transition.column, pac_interval)
+                key = (state.id, action.id, transition.column)
+                if key in probability_estimates:
+                    # update probability estimate with PAC interval
+                    estimate = probability_estimates[key]
+                    pac_interval = pycarl.Interval(max(0, estimate - delta_M), min(1, estimate + delta_M))
+                    builder.add_next_value(act, transition.column, pac_interval)
+                else:
+                    # no probability estimate available, keep previous probability interval
+                    builder.add_next_value(act, transition.column, transition.value())
         number_actions += len(state.actions)
     
     transition_matrix = builder.build()
-    return update_interval_mdp(model=model, new_matrix=transition_matrix)
+    # return update_interval_mdp(model=model, new_matrix=transition_matrix)
+    return transition_matrix

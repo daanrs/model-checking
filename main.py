@@ -5,6 +5,7 @@ import random
 
 from collections import Counter
 from simulation import simulate
+from pac_learning import pac_learning
 
 random.seed(10)
 
@@ -84,3 +85,9 @@ probabilities = frequencies.probabilities()
 
 mdp = frequentist_learning(maze_final, probabilities)
 print(mdp)
+
+uMdp_matrix = create_uMdp_matrix(maze_final, 0.1)
+uMdp_model = update_interval_mdp(maze_final, uMdp_matrix)
+pac_matrix = pac_learning(uMdp_model, frequencies, 0.1)
+pac_imdp = update_interval_mdp(maze_final, pac_matrix)
+print(pac_imdp)
