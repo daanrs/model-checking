@@ -43,6 +43,7 @@ maze_final = stormpy.build_model(maze_model)
 # print(maze_final.transition_matrix)
 
 frequencies = simulate(maze_final)
+probabilities = frequencies.probabilities()
 
-mdp = frequentist_learning(frequencies)
+mdp = frequentist_learning(probabilities)
 print(mdp)
