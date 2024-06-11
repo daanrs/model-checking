@@ -1,6 +1,6 @@
 import stormpy
 
-def build_matrix_from_data(frequencies):
+def frequentist_learning(frequencies):
     builder = stormpy.SparseMatrixBuilder(rows=0, columns=0, entries=0, force_dimensions=False, has_custom_row_grouping=True, row_groups=0)
     sorted_keys = sorted(frequencies)
 

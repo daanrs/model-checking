@@ -5,7 +5,7 @@ import random
 
 from collections import Counter
 from simulation import simulate
-from frequentist_learning import build_matrix_from_data
+from frequentist_learning import frequentist_learning
 
 random.seed(10)
 
@@ -44,5 +44,5 @@ maze_final = stormpy.build_model(maze_model)
 
 frequencies = simulate(maze_final)
 
-mdp = build_matrix_from_data(frequencies)
+mdp = frequentist_learning(frequencies)
 print(mdp)
