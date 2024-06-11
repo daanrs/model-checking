@@ -7,8 +7,8 @@ from simulation import Measurement
 from main import update_interval_mdp
 
 def pac_learning(model, frequencies, error_rate = 0.1):
-    # first perform frequentist learning
-    frequentist_estimates = frequentist_learning(frequencies.probabilities())
+    # probability estimates from frequentist learning
+    probability_estimates = frequencies.probabilities()
 
     # compute error bounds
     m = 0 # number of successor states with probabilities in (0,1)
@@ -29,7 +29,7 @@ def pac_learning(model, frequencies, error_rate = 0.1):
 
             act = action.id + number_actions
             for transition in action.transitions:
-                estimate = frequentist_estimates[state.id, act, transition.column]
+                estimate = probability_estimates[state.id, act, transition.column]
                 pac_interval = pycarl.Interval(max(0, estimate - delta_M), min(1, estimate + delta_M))
                 builder.add_next_value(act, transition.column, pac_interval)
         number_actions += len(state.actions)
