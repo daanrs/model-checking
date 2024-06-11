@@ -25,41 +25,6 @@ def update_mdp(model, new_matrix):
     return stormpy.SparseMdp(components)
 
 
-def frequentist(model, measurement):
-    return update_mdp(
-        model=model, 
-        new_matrix = create_matrix(model, measurement)
-    )
-
-
-def create_matrix(model, measurement):
-    builder = stormpy.SparseMatrixBuilder(
-        rows=0, 
-        columns=0, 
-        entries=0, 
-        force_dimensions=False, 
-        has_custom_row_grouping=True, 
-        row_groups=0
-    )
-
-    nr_actions = 0
-    for state in model.states:
-        builder.new_row_group(nr_actions)
-
-        for action in state.actions:
-            for transition in action.transitions:
-                act = action.id + nr_actions
-                
-                prob = measurement.get_probability(state.id, action.id, transition.column)
-                builder.add_next_value(act, transition.column, prob)
-
-        nr_actions = nr_actions + len(state.actions)
-
-    matrix = builder.build()
-
-    return matrix
-    
-
 def create_uMdp_matrix(model, epsilon):
     builder = stormpy.IntervalSparseMatrixBuilder(rows=0, columns=0, entries=0, force_dimensions=False, has_custom_row_grouping=True, row_groups=0)
 

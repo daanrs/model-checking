@@ -86,14 +86,15 @@ def lui_create_matrix(model, measurement, strengths):
 
     return matrix, strengths
     
-model_file = stormpy.examples.files.prism_mdp_slipgrid
-model_model = stormpy.parse_prism_program(model_file)
-model = stormpy.build_model(model_model)
+if __name__ == "__main__":
+    model_file = stormpy.examples.files.prism_mdp_slipgrid
+    model_model = stormpy.parse_prism_program(model_file)
+    model = stormpy.build_model(model_model)
 
-measurement = simulate(model)
+    measurement = simulate(model)
 
-lui, strengths = lui_init(model, 0.2, 0, 100)
-print(lui.transition_matrix)
+    lui, strengths = lui_init(model, 0.2, 0, 100)
+    print(lui.transition_matrix)
 
-lui_next, strengths = lui_step(lui, measurement, strengths)
-print(lui_next.transition_matrix)
+    lui_next, strengths = lui_step(lui, measurement, strengths)
+    print(lui_next.transition_matrix)
