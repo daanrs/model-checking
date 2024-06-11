@@ -33,7 +33,6 @@ def frequentist(model, measurement):
 
 
 def create_matrix(model, measurement):
-    print(measurement.total_frequencies)
     
     builder = stormpy.SparseMatrixBuilder(
         rows=0, 
