@@ -12,6 +12,7 @@ def update_interval_mdp(model, new_matrix):
     )
     return stormpy.SparseIntervalMdp(components)
 
+
 def update_interval_from_regular_mdp(model, new_matrix):
     components = stormpy.SparseIntervalModelComponents(
         transition_matrix=new_matrix,
@@ -32,6 +33,23 @@ def update_mdp(model, new_matrix):
     )
     return stormpy.SparseMdp(components)
 
+
+def rewards_from_model(model):
+    rewards = model.reward_models['']
+    if rewards.has_state_rewards or not rewards.has_state_action_rewards:
+        raise Exception("we only deal with state-action rewards")
+
+    state_actions = [
+        (s, a)
+        for s in model.states
+        for a in s.actions
+    ]
+
+    return {
+        (state.id, action.id): rewards.get_state_action_reward(i)
+        for i, (state, action) in enumerate(state_actions)
+    }
+    
 
 def create_interval_reward_model(model, rewards):
     if rewards.has_state_rewards or not rewards.has_state_action_rewards:

@@ -7,6 +7,8 @@ from util import *
 from lui import *
 from scheduler import *
 from frequentist import *
+from simulation import *
+from value_iteration import value_iter, value_iter_with_policy
 
 # for lui
 def main(init_model, loops=10):
@@ -17,23 +19,26 @@ def main(init_model, loops=10):
     # initial data without scheduler
     measurement = simulate(init_model)
     model, strengths = lui_step(model, measurement, strengths)
-    
-    formula = stormpy.parse_properties("Rmin=? [ F \"target\"]")
 
+    rewards = rewards_from_model(init_model)
+    # print(rewards)
+    
     # with scheduler
     for _ in range(loops):
-        scheduler, _, _, _ = get_schedulers_for_interval_mdp(model, formula)
-        scheduled_model = init_model.apply_scheduler(scheduler)
+        policy, _ = value_iter(model, rewards)
+
+        _, real_values = value_iter_with_policy(init_model, rewards, policy)
 
         initial_state = model.initial_states[0]
-        result = stormpy.model_checking(scheduled_model, formula[0])
-        value = result.at(initial_state)
+
+        value = real_values[initial_state]
         data.append(value)
 
-        measurement = simulate(init_model, scheduler = scheduler)
+        measurement = simulate_policy(init_model, scheduler = policy)
         model, strengths = lui_step(model, measurement, strengths)
 
     return data
+
 
 def main2(init_model, loops=10):
     data = []
@@ -58,6 +63,7 @@ def main2(init_model, loops=10):
         model = frequentist(model, measurement)
 
     return data
+
 
 if __name__ == "__main__":
     random.seed(10)
