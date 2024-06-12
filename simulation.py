@@ -12,13 +12,6 @@ class Measurement:
         self.frequencies[(state_from, action, state_to)] += 1
         self.total_frequencies[(state_from, action)] += 1
 
-    # TODO(daan): remove
-    def probabilities(self):
-        return {
-            key: self.frequencies[key] / self.total_frequencies[(key[0], key[1])] 
-            for key in self.frequencies
-        }
-
     def has_estimate(self, state_from, action):
         return self.total_frequencies[(state_from, action)] != 0
 
