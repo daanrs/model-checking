@@ -1,7 +1,7 @@
 from pac_learning import *
 from map import *
 
-def get_schedulers_for_mdp(model):
+def get_scheduler_for_mdp(model):
     formula = stormpy.parse_properties("Pmax=? [ F \"target\"]")
     initial_state = model.initial_states[0]
 
@@ -48,6 +48,6 @@ if __name__ == "__main__":
     prior = init_uniform_prior(model, 1000)
     map_model = map(model, measurement, prior)
     print(map_model.transition_matrix)
-    map_scheduler, map_value = get_schedulers_for_mdp(map_model)
+    map_scheduler, map_value = get_scheduler_for_mdp(map_model)
     print(map_value)
     print(map_scheduler)
