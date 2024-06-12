@@ -4,7 +4,11 @@ import math
 
 from main import *
 
-def pac(model, measurement, error_rate = 0.1):
+def pac_init(model, measurement, error_rate = 0.1):
+    matrix = pac_create_matrix(model, measurement, error_rate)
+    return update_interval_from_regular_mdp(model, matrix)
+
+def pac_step(model, measurement, error_rate = 0.1):
     matrix = pac_create_matrix(model, measurement, error_rate)
     return update_interval_mdp(model, matrix)
 
@@ -51,7 +55,7 @@ if __name__ == "__main__":
 
     measurement = simulate(model)
 
-    pac = pac(model, measurement)
+    pac = pac_init(model, measurement)
     print(pac)
 
     print(pac.transition_matrix)

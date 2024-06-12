@@ -14,7 +14,7 @@ def init_strengths(model, lower, upper):
 def lui_init(model, epsilon = 0.2 , lower=0, upper=10):
     matrix = create_uMdp_matrix(model, epsilon)
     strengths = init_strengths(model, lower, upper)
-    return update_interval_mdp(model, matrix), strengths
+    return update_interval_from_regular_mdp(model, matrix), strengths
 
 
 def lui_step(model, measurement, strengths):
