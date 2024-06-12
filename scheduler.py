@@ -1,6 +1,16 @@
 from pac_learning import *
+from map import *
 
-def get_scheduler_for_interval_mdp(model):
+def get_schedulers_for_mdp(model):
+    formula = stormpy.parse_properties("Pmax=? [ F \"target\"]")
+    initial_state = model.initial_states[0]
+
+    result = stormpy.model_checking(model, formula[0], extract_scheduler=True)
+    value = result.at(initial_state)
+    scheduler = result.scheduler
+    return scheduler, value
+
+def get_schedulers_for_interval_mdp(model):
     formula = stormpy.parse_properties("Pmax=? [ F \"target\"]")
     initial_state = model.initial_states[0]
 
@@ -29,7 +39,15 @@ if __name__ == "__main__":
 
     pac = pac(model, measurement)
     print(pac.transition_matrix)
-    robust_scheduler, robust_value, optimistic_scheduler, optimistic_value = get_scheduler_for_interval_mdp(pac)
+    robust_scheduler, robust_value, optimistic_scheduler, optimistic_value = get_schedulers_for_interval_mdp(pac)
     print(robust_value, optimistic_value)
     print(robust_scheduler)
     print(optimistic_scheduler)
+
+
+    prior = init_uniform_prior(model, 1000)
+    map_model = map(model, measurement, prior)
+    print(map_model.transition_matrix)
+    map_scheduler, map_value = get_schedulers_for_mdp(map_model)
+    print(map_value)
+    print(map_scheduler)
