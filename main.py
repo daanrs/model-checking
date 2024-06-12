@@ -4,15 +4,68 @@ import pycarl
 import random
 
 from util import *
+from lui import *
+from scheduler import *
+from frequentist import *
 
+# for lui
+def main(init_model, loops=10):
+    data = []
+    
+    model, strengths = lui_init(init_model)
+
+    # initial data without scheduler
+    measurement = simulate(init_model)
+    model, strengths = lui_step(model, measurement, strengths)
+    
+    formula = stormpy.parse_properties("Rmin=? [ F \"target\"]")
+
+    # with scheduler
+    for _ in range(loops):
+        scheduler, _, _, _ = get_schedulers_for_interval_mdp(model, formula)
+        scheduled_model = init_model.apply_scheduler(scheduler)
+
+        initial_state = model.initial_states[0]
+        result = stormpy.model_checking(scheduled_model, formula[0])
+        value = result.at(initial_state)
+        data.append(value)
+
+        measurement = simulate(init_model, scheduler = scheduler)
+        model, strengths = lui_step(model, measurement, strengths)
+
+    return data
+
+def main2(init_model, loops=10):
+    data = []
+    
+    # initial data without scheduler
+    measurement = simulate(init_model)
+    model = frequentist(init_model, measurement)
+    
+    formula = stormpy.parse_properties("Rmin=? [ F \"target\"]")
+
+    # with scheduler
+    for _ in range(loops):
+        scheduler, _ = get_scheduler_for_mdp(model, formula)
+        scheduled_model = init_model.apply_scheduler(scheduler)
+
+        initial_state = model.initial_states[0]
+        result = stormpy.model_checking(scheduled_model, formula[0])
+        value = result.at(initial_state)
+        data.append(value)
+
+        measurement = simulate(init_model, measurement=measurement, scheduler = scheduler)
+        model = frequentist(model, measurement)
+
+    return data
 
 if __name__ == "__main__":
     random.seed(10)
-    maze = stormpy.examples.files.prism_mdp_maze
-    maze_model = stormpy.parse_prism_program(maze)
-    maze_final = stormpy.build_model(maze_model)
 
     slipgrid = stormpy.parse_prism_program(stormpy.examples.files.prism_mdp_slipgrid)
     slipgrid_model = stormpy.build_model(slipgrid)
-    print(slipgrid_model.transition_matrix)
+
+    # data = main2(slipgrid_model)
+    data = main(slipgrid_model)
+    print(data)
 

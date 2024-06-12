@@ -1,8 +1,7 @@
 from pac_learning import *
 from map import *
 
-def get_scheduler_for_mdp(model):
-    formula = stormpy.parse_properties("Pmax=? [ F \"target\"]")
+def get_scheduler_for_mdp(model, formula):
     initial_state = model.initial_states[0]
 
     result = stormpy.model_checking(model, formula[0], extract_scheduler=True)
@@ -10,8 +9,7 @@ def get_scheduler_for_mdp(model):
     scheduler = result.scheduler
     return scheduler, value
 
-def get_schedulers_for_interval_mdp(model):
-    formula = stormpy.parse_properties("Pmax=? [ F \"target\"]")
+def get_schedulers_for_interval_mdp(model, formula):
     initial_state = model.initial_states[0]
 
     env = stormpy.Environment()
