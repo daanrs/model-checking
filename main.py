@@ -12,6 +12,7 @@ def update_interval_mdp(model, new_matrix):
     components = stormpy.SparseIntervalModelComponents(
         transition_matrix=new_matrix,
         state_labeling=model.labeling,
+        reward_models=model.reward_models
     )
     return stormpy.SparseIntervalMdp(components)
 
@@ -20,6 +21,7 @@ def update_mdp(model, new_matrix):
     components = stormpy.SparseModelComponents(
         transition_matrix=new_matrix,
         state_labeling=model.labeling,
+        reward_models=model.reward_models
     )
     return stormpy.SparseMdp(components)
 
