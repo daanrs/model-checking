@@ -1,6 +1,7 @@
 import stormpy
+import stormpy.examples.files
 
-from main import *
+from util import *
 
 def init_uniform_prior(model, alpha):
     return {

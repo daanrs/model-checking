@@ -1,6 +1,7 @@
 import stormpy
+import stormpy.examples.files
 
-from main import *
+from util import *
 
 def frequentist(model, measurement):
     return update_mdp(

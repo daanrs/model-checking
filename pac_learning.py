@@ -1,8 +1,9 @@
 import stormpy
+import stormpy.examples.files
 import pycarl
 import math
 
-from main import *
+from util import *
 
 def pac_init(model, measurement, error_rate = 0.1):
     matrix = pac_create_matrix(model, measurement, error_rate)

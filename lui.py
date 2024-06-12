@@ -1,6 +1,7 @@
 import stormpy
+import stormpy.examples.files
 
-from main import *
+from util import *
 from simulation import simulate
 
 def init_strengths(model, lower, upper):
