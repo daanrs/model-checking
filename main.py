@@ -83,9 +83,6 @@ if __name__ == "__main__":
     slipgrid_model = stormpy.build_model(slipgrid)
     print(slipgrid_model.transition_matrix)
 
-    frequencies = simulate(slipgrid_model)
-    probabilities = frequencies.probabilities()
-
     uMdp_matrix = create_uMdp_matrix(slipgrid_model, 0.1)
     uMdp_model = update_interval_mdp(slipgrid_model, uMdp_matrix)
     print(uMdp_model)

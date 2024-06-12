@@ -31,15 +31,19 @@ class Measurement:
             )
     
 
-def simulate(model, num_paths = 100, max_path_length = 200, measurement = Measurement()):
+def simulate(model, num_paths = 100, max_path_length = 200, measurement = Measurement(), scheduler = None):
     stop_next_round = False
     simulator = stormpy.simulator.create_simulator(model, seed=42)
     for m in range(num_paths):
         state_from, reward, labels = simulator.restart()
         for n in range(max_path_length):
-            actions = simulator.available_actions()
-            select_action = random.randint(0,len(actions)-1)
-            action = actions[select_action]
+            if scheduler:
+                choice = scheduler.get_choice(state_from)
+                action = choice.get_deterministic_choice()
+            else:
+                actions = simulator.available_actions()
+                select_action = random.randint(0,len(actions)-1)
+                action = actions[select_action]
 
             state_to, reward, labels = simulator.step(action)
             measurement.measure(state_from, action, state_to)
