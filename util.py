@@ -46,8 +46,8 @@ def state_rewards_from_model(model):
     ]
 
     return {
-        (state.id, action.id): rewards.get_state_reward(i)
-        for i, (state, action) in enumerate(state_actions)
+        (state.id, action.id): rewards.get_state_reward(state.id)
+        for (state, action) in state_actions
     }
 
 def state_to_state_action_rewards(model, rewards, policy):

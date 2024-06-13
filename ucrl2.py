@@ -36,25 +36,52 @@ def get_supremum_policy(measurement, distance, V, state_id, action_id):
     value = sum(policy[state] * V[state] for state in V.keys())
     return policy, value
 
-def compute_optimistic_policy(model, measurement, distance, gamma=0.95, error_bound=0.01):
-    model_rewards = state_rewards_from_model(model)
-    optimistic_policy = {}
-    V_old = { state.id: 0 for state in model.states }
-    V_new = {}
-    while True:
-        for state in model.states:
-            max_reward = 0
-            for action in state.actions:
-                policy, value = get_supremum_policy(measurement, distance, V_old, state.id, action.id)
-                reward = model_rewards[(state.id, action.id)] + gamma * value
-                if reward > max_reward:
-                    optimistic_policy[state.id] = action.id
-                    max_reward = reward
-            V_new[state.id] = max_reward
-        if max(abs(V_new[state.id] - V_old[state.id]) for state in model.states) < error_bound:
-            break
-        V_old = V_new
-    return optimistic_policy
+def value_iteration_next(model, measurement, distance, vs, rewards, gamma):
+    vals = { state.id : 
+        [
+            (
+                action.id, 
+                (
+                    rewards[(state.id, action.id)]
+                    + gamma * get_supremum_policy(measurement, distance, vs, state.id, action.id)[1]
+                )
+            )
+            for action in state.actions
+        ]
+        for state in model.states
+    }
+
+    maxes = {
+        k: max(v, key=lambda x: x[1])
+        for k, v in vals.items()
+    }
+
+    return (
+        { k: v[0] for k, v in maxes.items() },
+        { k: v[1] for k, v in maxes.items() }
+    )
+
+def compute_optimistic_policy(model, measurement, distance, gamma=0.95, error_bound=1):
+    max_iter = 200
+    if model.reward_models[''].has_state_action_rewards:
+        rewards = rewards_from_model(model)
+    elif model.reward_models[''].has_state_rewards:
+        rewards = state_rewards_from_model(model)
+    vs = { state.id: 0 for state in model.states }
+    error = error_bound + 1
+    iter = 0
+    while (error > error_bound):
+        # print(iter, error, error_bound, error > error_bound)
+        if iter > max_iter:
+            raise Exception(f"could not converge within {max_iter} iterations")
+
+        policy, vs_next = value_iteration_next(model, measurement, distance, vs, rewards, gamma)
+
+        error = max(abs(vs_next[i] - vs[i]) for i in vs)
+        vs = vs_next
+
+        iter += 1
+    return policy
 
 def sample_ucrl2(init_model, measurement, policy):
     sas_counter = Counter() # state-action-state counter
@@ -78,14 +105,14 @@ def ucrl2(init_model, formula, loops=10, delta=0.1, gamma=0.95, error_bound=0.01
     measurement = Measurement()
 
     for k in range(loops):
-        # print(measurement.total_frequencies)
+        print(f"Loop number: {k}")
+        print(measurement.total_frequencies)
         distance = build_l1_mdp(init_model, measurement, time, delta)
         optimistic_policy = compute_optimistic_policy(init_model, measurement, distance, gamma, error_bound)
         sas_counter, sa_counter, time_steps = sample_ucrl2(init_model, measurement, optimistic_policy)
         measurement.add_frequencies(sas_counter, sa_counter)
         time += time_steps
 
-        # policy_as_list = [optimistic_policy[i] for i in range(len(optimistic_policy))]
         model_dtmc = apply_policy(init_model, optimistic_policy)
         result = stormpy.model_checking(model_dtmc, formula)
         initial_state = model_dtmc.initial_states[0]
@@ -98,12 +125,13 @@ def ucrl2(init_model, formula, loops=10, delta=0.1, gamma=0.95, error_bound=0.01
 
 
 if __name__ == "__main__":
-    program = stormpy.parse_prism_program('models/bet_fav.prism')
-    prop = "R=? [F \"done\"]"
+    program = stormpy.parse_prism_program('models/bandit.prism')
+    prop = "R=? [F \"goal\"]"
+    # prop = "R=? [F \"done\"]"
     properties = stormpy.parse_properties(prop, program, None)
     formula = properties[0]
     model = stormpy.build_model(program, properties)
 
-    l1mdp, data = ucrl2(model, formula, loops=10, delta=0.1, gamma=0.95, error_bound=0.01)
+    l1mdp, data = ucrl2(model, formula, loops=10, delta=0.1, gamma=0.95, error_bound=0.1)
     print(l1mdp[0])
     print(data)
