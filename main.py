@@ -8,10 +8,10 @@ from lui import *
 from scheduler import *
 from frequentist import *
 from simulation import *
-from value_iteration import interval_value_iter, value_iter, value_iter_with_policy
+from value_iteration import *
 
 # for lui
-def main_lui(init_model, loops=10, gamma=0.9, max_iter=1000):
+def main_lui(init_model, formula, loops=10, gamma=0.9, max_iter=1000):
     data = []
     
     model, strengths = lui_init(init_model)
@@ -27,20 +27,21 @@ def main_lui(init_model, loops=10, gamma=0.9, max_iter=1000):
     for _ in range(loops):
         policy, _ = interval_value_iter(model, rewards, gamma=gamma, max_iter=max_iter)
 
-        _, real_values = value_iter_with_policy(init_model, rewards, policy, gamma=gamma, max_iter=max_iter)
+        model_dtmc = apply_policy(init_model, policy)
+        result = stormpy.model_checking(model_dtmc, formula)
 
         initial_state = model.initial_states[0]
-
-        value = real_values[initial_state]
+        value = result.at(initial_state)
         data.append(value)
 
-        measurement = simulate_policy(init_model, scheduler = policy)
+        # measurement = simulate_policy(init_model, scheduler = policy)
+        measurement = simulate(init_model)
         model, strengths = lui_step(model, measurement, strengths)
 
     return data
 
 
-def main_frequentist(init_model, loops=10, gamma=0.9, max_iter=1000):
+def main_frequentist(init_model, formula, loops=10, gamma=0.9, max_iter=1000):
     data = []
     
     # initial data without scheduler
@@ -53,11 +54,11 @@ def main_frequentist(init_model, loops=10, gamma=0.9, max_iter=1000):
     for _ in range(loops):
         policy, _ = value_iter(model, rewards, gamma=gamma, max_iter=max_iter)
 
-        _, real_values = value_iter_with_policy(init_model, rewards, policy, gamma=gamma, max_iter=max_iter)
+        model_dtmc = apply_policy(init_model, policy)
+        result = stormpy.model_checking(model_dtmc, formula)
 
         initial_state = model.initial_states[0]
-
-        value = real_values[initial_state]
+        value = result.at(initial_state)
         data.append(value)
 
         measurement = simulate_policy(init_model, measurement = measurement, scheduler = policy)
@@ -65,7 +66,8 @@ def main_frequentist(init_model, loops=10, gamma=0.9, max_iter=1000):
 
     return data
 
-def main_pac(init_model, loops=10, gamma=0.9, max_iter=1000):
+
+def main_pac(init_model, formula, loops=10, gamma=0.9, max_iter=1000):
     data = []
     
     model = pac_init(init_model)
@@ -81,11 +83,11 @@ def main_pac(init_model, loops=10, gamma=0.9, max_iter=1000):
     for _ in range(loops):
         policy, _ = interval_value_iter(model, rewards, gamma=gamma, max_iter=max_iter)
 
-        _, real_values = value_iter_with_policy(init_model, rewards, policy, gamma=gamma, max_iter=max_iter)
+        model_dtmc = apply_policy(init_model, policy)
+        result = stormpy.model_checking(model_dtmc, formula)
 
         initial_state = model.initial_states[0]
-
-        value = real_values[initial_state]
+        value = result.at(initial_state)
         data.append(value)
 
         measurement = simulate_policy(init_model, measurement=measurement, scheduler = policy)
@@ -100,10 +102,16 @@ if __name__ == "__main__":
     # slipgrid = stormpy.parse_prism_program(stormpy.examples.files.prism_mdp_slipgrid)
     # slipgrid_model = stormpy.build_model(slipgrid)
 
-    model = stormpy.build_model(stormpy.parse_prism_program('models/bet_fav.prism'))
+    program = stormpy.parse_prism_program('models/bet_fav.prism')
+    prop = "R=? [F \"done\"]"
+    properties = stormpy.parse_properties(prop, program, None)
 
-    # data = main_frequentist(model, loops=100)
-    data = main_lui(model, loops=100)
-    # data = main_pac(model)
+    formula=properties[0]
+
+    model = stormpy.build_model(program, properties)
+
+    # data = main_frequentist(model, formula=formula)
+    # data = main_lui(model, loops=100, formula=formula)
+    data = main_pac(model, formula=formula)
     print(data)
 

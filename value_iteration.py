@@ -129,7 +129,7 @@ def next_with_policy(model, policy, vs, rewards, gamma):
     ]
 
 
-def apply_scheduler(model, scheduler):
+def apply_policy(model, scheduler):
     builder = stormpy.SparseMatrixBuilder(
         rows=0, 
         columns=0, 
