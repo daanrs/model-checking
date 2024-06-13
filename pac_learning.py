@@ -5,15 +5,15 @@ import math
 
 from util import *
 
-def pac_init(model, error_rate = 0.1):
-    matrix = create_uMdp_matrix(model, error_rate)
+def pac_init(model, epsilon = 0.2):
+    matrix = create_uMdp_matrix(model, epsilon)
     return update_interval_from_regular_mdp(model, matrix)
 
 def pac_step(model, measurement, error_rate = 0.1):
     matrix = pac_create_matrix(model, measurement, error_rate)
     return update_interval_mdp(model, matrix)
 
-def pac_create_matrix(model, measurement, error_rate = 0.1):
+def pac_create_matrix(model, measurement, error_rate = 0.1, interval_epsilon = 0.001):
     # compute error bounds
     m = 0 # number of successor states with probabilities in (0,1)
     for state in model.states:
@@ -35,9 +35,12 @@ def pac_create_matrix(model, measurement, error_rate = 0.1):
 
                 # update probability estimate with PAC interval
                 for transition in action.transitions:
-                    estimate = measurement.get_probability(state.id, action.id, transition.column)
-                    pac_interval = pycarl.Interval(max(0, estimate - delta_M), min(1, estimate + delta_M))
-                    builder.add_next_value(act, transition.column, pac_interval)
+                    if 0 < transition.value() < 1:
+                        estimate = measurement.get_probability(state.id, action.id, transition.column)
+                        pac_interval = pycarl.Interval(max(interval_epsilon, estimate - delta_M), min(1, estimate + delta_M))
+                        builder.add_next_value(act, transition.column, pac_interval)
+                    else:
+                        builder.add_next_value(act, transition.column, transition.value())
             else:
                 # no probability estimate available, keep previous probability interval
                 for transition in action.transitions:

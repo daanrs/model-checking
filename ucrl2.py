@@ -75,17 +75,18 @@ def sample_ucrl2(init_model, measurement, policy):
 def ucrl2(init_model, formula, loops=10, delta=0.1, gamma=0.95, error_bound=0.01):
     time = 1
     data = []
+    measurement = Measurement()
 
     for k in range(loops):
-        measurement = Measurement()
+        # print(measurement.total_frequencies)
         distance = build_l1_mdp(init_model, measurement, time, delta)
         optimistic_policy = compute_optimistic_policy(init_model, measurement, distance, gamma, error_bound)
         sas_counter, sa_counter, time_steps = sample_ucrl2(init_model, measurement, optimistic_policy)
         measurement.add_frequencies(sas_counter, sa_counter)
         time += time_steps
 
-        policy_as_list = [optimistic_policy[i] for i in range(len(optimistic_policy))]
-        model_dtmc = apply_policy(init_model, policy_as_list)
+        # policy_as_list = [optimistic_policy[i] for i in range(len(optimistic_policy))]
+        model_dtmc = apply_policy(init_model, optimistic_policy)
         result = stormpy.model_checking(model_dtmc, formula)
         initial_state = model_dtmc.initial_states[0]
         value = result.at(initial_state)

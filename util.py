@@ -142,8 +142,8 @@ def create_uMdp_matrix(model, epsilon):
             for transition in action.transitions:
                 val = transition.value()
                 act = action.id + nr_actions
-                if val == 1:
-                    builder.add_next_value(act, transition.column, pycarl.Interval(1, 1))
+                if val == 0 or val == 1:
+                    builder.add_next_value(act, transition.column, pycarl.Interval(val, val))
                 else:
                     builder.add_next_value(act, transition.column, pycarl.Interval(epsilon, 1 - epsilon))
         nr_actions = nr_actions + len(state.actions)
