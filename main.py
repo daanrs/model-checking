@@ -8,7 +8,7 @@ from lui import *
 from scheduler import *
 from frequentist import *
 from simulation import *
-from value_iteration import value_iter, value_iter_with_policy
+from value_iteration import interval_value_iter, value_iter, value_iter_with_policy
 
 # for lui
 def main(init_model, loops=10):
@@ -25,7 +25,7 @@ def main(init_model, loops=10):
     
     # with scheduler
     for _ in range(loops):
-        policy, _ = value_iter(model, rewards)
+        policy, _ = interval_value_iter(model, rewards)
 
         _, real_values = value_iter_with_policy(init_model, rewards, policy)
 
@@ -47,19 +47,20 @@ def main2(init_model, loops=10):
     measurement = simulate(init_model)
     model = frequentist(init_model, measurement)
     
-    formula = stormpy.parse_properties("Rmin=? [ F \"target\"]")
+    rewards = rewards_from_model(init_model)
 
     # with scheduler
     for _ in range(loops):
-        scheduler, _ = get_scheduler_for_mdp(model, formula)
-        scheduled_model = init_model.apply_scheduler(scheduler)
+        policy, _ = value_iter(model, rewards)
+
+        _, real_values = value_iter_with_policy(init_model, rewards, policy)
 
         initial_state = model.initial_states[0]
-        result = stormpy.model_checking(scheduled_model, formula[0])
-        value = result.at(initial_state)
+
+        value = real_values[initial_state]
         data.append(value)
 
-        measurement = simulate(init_model, measurement=measurement, scheduler = scheduler)
+        measurement = simulate_policy(init_model, measurement = measurement, scheduler = policy)
         model = frequentist(model, measurement)
 
     return data
@@ -71,7 +72,7 @@ if __name__ == "__main__":
     slipgrid = stormpy.parse_prism_program(stormpy.examples.files.prism_mdp_slipgrid)
     slipgrid_model = stormpy.build_model(slipgrid)
 
-    # data = main2(slipgrid_model)
-    data = main(slipgrid_model)
+    data = main2(slipgrid_model)
+    # data = main(slipgrid_model)
     print(data)
 

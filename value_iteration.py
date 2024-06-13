@@ -73,6 +73,29 @@ def next(model, vs, rewards, gamma):
                 (
                     rewards[(state.id, action.id)]
                     + gamma * sum(
+                        transition.value() * vs[transition.column]
+                        for transition in action.transitions
+                    )
+                )
+            )
+            for action in state.actions
+        ]
+        for state in model.states
+    ]
+
+    return [
+        max(m, key = itemgetter(1))
+        for m in maxes
+    ]
+
+def interval_next(model, vs, rewards, gamma):
+    maxes = [
+        [
+            (
+                action.id, 
+                (
+                    rewards[(state.id, action.id)]
+                    + gamma * sum(
                         min_distr(vs, action)[transition.column] * vs[transition.column]
                         for transition in action.transitions
                     )
@@ -163,6 +186,28 @@ def value_iter(model, rewards, precision = 0.01, gamma = 0.9, max_iter = 100):
             raise Exception(f"could not converge within {max_iter} iterations")
 
         arg_and_vs = next(model, vs, rewards, gamma)
+
+        args = list(a[0] for a in arg_and_vs)
+        vs_next = list(a[1] for a in arg_and_vs)
+
+        error = max(abs(vs_next[i] - vs[i]) for i in range(len(vs)))
+        vs = vs_next
+
+        iter += 1
+
+
+    return (args, vs)
+
+def interval_value_iter(model, rewards, precision = 0.01, gamma = 0.9, max_iter = 100):
+    vs = list(0 for _ in model.states)
+    error = 1
+    iter = 0
+
+    while (error > precision):
+        if iter > max_iter:
+            raise Exception(f"could not converge within {max_iter} iterations")
+
+        arg_and_vs = interval_next(model, vs, rewards, gamma)
 
         args = list(a[0] for a in arg_and_vs)
         vs_next = list(a[1] for a in arg_and_vs)
