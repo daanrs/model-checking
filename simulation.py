@@ -25,9 +25,10 @@ class Measurement:
     def get_total_frequency(self, state_from, action):
         return self.total_frequencies[(state_from, action)]
 
-    def get_probability(self, state_from, action, state_to):
+    def get_probability(self, state_from, action, state_to, allow_no_estimate = False):
         if not self.has_estimate(state_from, action):
-            # return 0
+            if allow_no_estimate:
+                return 0
             raise Exception("Tried to get probability for a state-action pair which has never been measured")
         else:
             return (

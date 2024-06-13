@@ -24,9 +24,9 @@ def get_supremum_policy(measurement, distance, V, state_id, action_id):
     state_order = sorted(V.keys(), key=lambda x: V[x], reverse=True)
     m = len(state_order)
     policy = {}
-    policy[state_order[0]] = min(1, measurement.get_probability(state_id, action_id, state_order[0]) + distance[(state_id, action_id)] / 2)
+    policy[state_order[0]] = min(1, measurement.get_probability(state_id, action_id, state_order[0], allow_no_estimate=True) + distance[(state_id, action_id)] / 2)
     for j in range(1, m):
-        policy[state_order[j]] = measurement.get_probability(state_id, action_id, state_order[j])
+        policy[state_order[j]] = measurement.get_probability(state_id, action_id, state_order[j], allow_no_estimate=True)
     l = m - 1
     while sum(policy.values()) > 1:
         policy[state_order[l]] = max(0, 1 - (sum(policy.values()) - policy[state_order[l]]))
