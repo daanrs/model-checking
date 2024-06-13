@@ -50,21 +50,45 @@ def state_rewards_from_model(model):
         for i, (state, action) in enumerate(state_actions)
     }
 
+def state_to_state_action_rewards(model, rewards, policy):
+    sa_rewards = rewards_v321(model, rewards)
 
-def state_rewards_from_policy(model, policy):
-    rewards = model.reward_models['']
+    state_rewards = [
+        sa_rewards[(state.id, policy[state.id])]
+        for state in model.states
+    ]
 
+    return stormpy.SparseRewardModel(optional_state_reward_vector=state_rewards)
+
+def rewards_v123(rewards, model, policy):
     if rewards.has_state_rewards and not rewards.has_state_action_rewards:
         return rewards
     elif not rewards.has_state_rewards and rewards.has_state_action_rewards:
-        state_rewards = [
-            rewards.get_state_action_reward(model.get_choice_index(state.id, policy[state.id]))
-            for state in model.states
-        ]
-
-        return {'': stormpy.SparseRewardModel(optional_state_reward_vector=state_rewards)}
+        return state_to_state_action_rewards(model, rewards, policy)
     else:
         raise Exception("model has both state and state-action rewards")
+
+
+def state_rewards_from_policy(model, policy):
+    return {
+        k: rewards_v123(v, model, policy)
+        for k, v in model.reward_models.items()
+    }
+
+def rewards_v321(model, rewards):
+    if rewards.has_state_rewards or not rewards.has_state_action_rewards:
+        raise Exception("we only deal with state-action rewards")
+
+    state_actions = [
+        (s, a)
+        for s in model.states
+        for a in s.actions
+    ]
+
+    return {
+        (state.id, action.id): rewards.get_state_action_reward(i)
+        for i, (state, action) in enumerate(state_actions)
+    }
    
 
 def rewards_from_model(model):

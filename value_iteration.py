@@ -1,4 +1,3 @@
-from operator import itemgetter
 import stormpy
 
 from util import *
@@ -67,7 +66,7 @@ def min_distribution(vs):
 
 
 def next(model, vs, rewards, gamma):
-    maxes = [
+    vals = { state.id : 
         [
             (
                 action.id, 
@@ -82,15 +81,20 @@ def next(model, vs, rewards, gamma):
             for action in state.actions
         ]
         for state in model.states
-    ]
+    }
 
-    return [
-        max(m, key = itemgetter(1))
-        for m in maxes
-    ]
+    maxes = {
+        k: max(v, key=lambda x: x[1])
+        for k, v in vals.items()
+    }
+
+    return (
+        { k: v[0] for k, v in maxes.items() },
+        { k: v[1] for k, v in maxes.items() }
+    )
 
 def interval_next(model, vs, rewards, gamma):
-    maxes = [
+    vals = { state.id : 
         [
             (
                 action.id, 
@@ -105,16 +109,21 @@ def interval_next(model, vs, rewards, gamma):
             for action in state.actions
         ]
         for state in model.states
-    ]
+    }
 
-    return [
-        max(m, key = itemgetter(1))
-        for m in maxes
-    ]
+    maxes = {
+        k: max(v, key=lambda x: x[1])
+        for k, v in vals.items()
+    }
+
+    return (
+        { k: v[0] for k, v in maxes.items() },
+        { k: v[1] for k, v in maxes.items() }
+    )
 
 
 def next_with_policy(model, policy, vs, rewards, gamma):
-    return [
+    maxes = { state.id : 
         (
             (action := state.actions[policy[state.id]]).id, 
             (
@@ -126,7 +135,12 @@ def next_with_policy(model, policy, vs, rewards, gamma):
             )
         )
         for state in model.states
-    ]
+    }
+
+    return (
+        { k: v[0] for k, v in maxes.items() },
+        { k: v[1] for k, v in maxes.items() }
+    )
 
 
 def apply_policy(model, scheduler):
@@ -149,33 +163,30 @@ def apply_policy(model, scheduler):
     return stormpy.SparseDtmc(
         stormpy.SparseModelComponents(
             transition_matrix = matrix,
-            state_labeling=model.labeling,
+            state_labeling = model.labeling,
             reward_models = state_rewards_from_policy(model, scheduler)
         )
     )
     
 
-def value_iter_with_policy(model, rewards, policy, gamma, max_iter, precision = 0.01):
-    vs = list(0 for _ in model.states)
-    error = 1
-    iter = 0
+# def value_iter_with_policy(model, rewards, policy, gamma, max_iter, precision = 0.01):
+#     vs = list(0 for _ in model.states)
+#     error = 1
+#     iter = 0
 
-    while (error > precision):
-        if iter > max_iter:
-            raise Exception(f"could not converge within {max_iter} iterations")
+#     while (error > precision):
+#         if iter > max_iter:
+#             raise Exception(f"could not converge within {max_iter} iterations")
 
-        arg_and_vs = next_with_policy(model, policy, vs, rewards, gamma)
+#         args, vs_next = next_with_policy(model, policy, vs, rewards, gamma)
 
-        args = list(a[0] for a in arg_and_vs)
-        vs_next = list(a[1] for a in arg_and_vs)
+#         error = max(abs(vs_next[i] - vs[i]) for i in vs)
+#         vs = vs_next
 
-        error = max(abs(vs_next[i] - vs[i]) for i in range(len(vs)))
-        vs = vs_next
-
-        iter += 1
+#         iter += 1
 
 
-    return (args, vs)
+#     return (args, vs)
 
 def value_iter(model, rewards, gamma, max_iter, precision = 0.01):
     vs = list(0 for _ in model.states)
@@ -186,12 +197,9 @@ def value_iter(model, rewards, gamma, max_iter, precision = 0.01):
         if iter > max_iter:
             raise Exception(f"could not converge within {max_iter} iterations")
 
-        arg_and_vs = next(model, vs, rewards, gamma)
+        args, vs_next = next(model, vs, rewards, gamma)
 
-        args = list(a[0] for a in arg_and_vs)
-        vs_next = list(a[1] for a in arg_and_vs)
-
-        error = max(abs(vs_next[i] - vs[i]) for i in range(len(vs)))
+        error = max(abs(vs_next[i] - vs[i]) for i in vs)
         vs = vs_next
 
         iter += 1
@@ -208,12 +216,9 @@ def interval_value_iter(model, rewards, gamma, max_iter, precision = 0.01):
         if iter > max_iter:
             raise Exception(f"could not converge within {max_iter} iterations")
 
-        arg_and_vs = interval_next(model, vs, rewards, gamma)
+        args, vs_next = interval_next(model, vs, rewards, gamma)
 
-        args = list(a[0] for a in arg_and_vs)
-        vs_next = list(a[1] for a in arg_and_vs)
-
-        error = max(abs(vs_next[i] - vs[i]) for i in range(len(vs)))
+        error = max(abs(vs_next[i] - vs[i]) for i in vs)
         vs = vs_next
 
         iter += 1
