@@ -5,8 +5,8 @@ import math
 
 from util import *
 
-def pac_init(model, measurement, error_rate = 0.1):
-    matrix = pac_create_matrix(model, measurement, error_rate)
+def pac_init(model, error_rate = 0.1):
+    matrix = create_uMdp_matrix(model, error_rate)
     return update_interval_from_regular_mdp(model, matrix)
 
 def pac_step(model, measurement, error_rate = 0.1):
@@ -54,9 +54,13 @@ if __name__ == "__main__":
     model_model = stormpy.parse_prism_program(model_file)
     model = stormpy.build_model(model_model)
 
+    pac = pac_init(model)
+
     measurement = simulate(model)
+    pac = pac_step(pac, measurement)
 
-    pac = pac_init(model, measurement)
+    measurement = simulate(model, measurement=measurement)
+    pac = pac_step(pac, measurement)
+
     print(pac)
-
     print(pac.transition_matrix)
