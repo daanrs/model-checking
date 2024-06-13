@@ -3,14 +3,14 @@ import stormpy.examples.files
 
 from util import *
 
-def frequentist(model, measurement):
+def frequentist(model, measurement, ucrl2=False):
     return update_mdp(
         model=model, 
-        new_matrix = frequentist_create_matrix(model, measurement)
+        new_matrix = frequentist_create_matrix(model, measurement, ucrl2)
     )
 
 
-def frequentist_create_matrix(model, measurement):
+def frequentist_create_matrix(model, measurement, ucrl2=False):
     builder = stormpy.SparseMatrixBuilder(
         rows=0, 
         columns=0, 
@@ -30,9 +30,13 @@ def frequentist_create_matrix(model, measurement):
                 
                 if measurement.has_estimate(state.id, action.id):
                     prob = measurement.get_probability(state.id, action.id, transition.column)
-                # if there are no measurements we assume uniform probability
                 else:
-                    prob = 1 / len(action.transitions)
+                    # if there are no measurements we assume uniform probability
+                    # only for UCRL2 we assume 0 probability
+                    if ucrl2:
+                        prob = 0
+                    else:
+                        prob = 1 / len(action.transitions)
 
                 builder.add_next_value(act, transition.column, prob)
 

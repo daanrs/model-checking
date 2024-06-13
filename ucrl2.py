@@ -1,8 +1,11 @@
 import stormpy
 import stormpy.examples.files
 import math
+from collections import Counter
+
 from simulation import *
 from util import *
+from frequentist import *
 
 error_bound = 0.01 # error bound for value iteration
 gamma = 0.95 # discount factor
@@ -57,6 +60,10 @@ def compute_optimistic_policy(model, measurement, distance):
             break
         V_old = V_new
     return optimistic_policy
+
+def sample_ucrl2(measurement, policy):
+    sas_counter = Counter() # state-action-state counter
+    sa_counter = Counter() # state-action counter
         
 
 if __name__ == "__main__":
@@ -68,3 +75,7 @@ if __name__ == "__main__":
     distance = build_l1_mdp(model, measurement)
     optimistic_policy = compute_optimistic_policy(model, measurement, distance)
     print(optimistic_policy)
+
+    ucrl2_mdp = frequentist(model, measurement, ucrl2=True)
+    print(ucrl2_mdp)
+    print(distance)
