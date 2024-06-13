@@ -11,6 +11,10 @@ class Measurement:
     def measure(self, state_from, action, state_to):
         self.frequencies[(state_from, action, state_to)] += 1
         self.total_frequencies[(state_from, action)] += 1
+    
+    def add_frequencies(self, frequencies, total_frequencies):
+        self.frequencies.update(frequencies)
+        self.total_frequencies.update(total_frequencies)
 
     def has_estimate(self, state_from, action):
         return self.total_frequencies[(state_from, action)] != 0
@@ -35,7 +39,7 @@ def simulate_policy(model, num_paths = 100, max_path_length = 200, measurement =
     stop_next_round = False
     simulator = stormpy.simulator.create_simulator(model, seed=42)
     for m in range(num_paths):
-        state_from, reward, labels = simulator.restart()
+        state_from, _, _ = simulator.restart()
         for n in range(max_path_length):
             if scheduler:
                 action = scheduler[state_from]
@@ -44,7 +48,7 @@ def simulate_policy(model, num_paths = 100, max_path_length = 200, measurement =
                 select_action = random.randint(0,len(actions)-1)
                 action = actions[select_action]
 
-            state_to, reward, labels = simulator.step(action)
+            state_to, _, _ = simulator.step(action)
             measurement.measure(state_from, action, state_to)
 
             state_from = state_to

@@ -1,5 +1,6 @@
 import stormpy
 import stormpy.examples.files
+import stormpy.simulator
 import math
 from collections import Counter
 
@@ -61,10 +62,19 @@ def compute_optimistic_policy(model, measurement, distance):
         V_old = V_new
     return optimistic_policy
 
-def sample_ucrl2(measurement, policy):
+def sample_ucrl2(sample_model, measurement, policy):
     sas_counter = Counter() # state-action-state counter
     sa_counter = Counter() # state-action counter
-        
+    simulator = stormpy.simulator.create_simulator(sample_model, seed=42)
+    state, _, _ = simulator.restart()
+    while sa_counter[(state, policy[state])] < max(1, measurement.get_total_frequency(state, policy[state])):
+        action = policy[state]
+        sa_counter[(state, action)] += 1
+        next_state, _, _ = simulator.step(action)
+        sas_counter[(state, action, next_state)] += 1
+        state = next_state
+        # time += 1
+    return sas_counter, sa_counter
 
 if __name__ == "__main__":
     model_file = stormpy.examples.files.prism_mdp_slipgrid
@@ -74,7 +84,8 @@ if __name__ == "__main__":
     measurement = Measurement()
     distance = build_l1_mdp(model, measurement)
     optimistic_policy = compute_optimistic_policy(model, measurement, distance)
-    print(optimistic_policy)
+    sas_counter, sa_counter = sample_ucrl2(model, measurement, optimistic_policy)
+    measurement.add_frequencies(sas_counter, sa_counter)
 
     ucrl2_mdp = frequentist(model, measurement, ucrl2=True)
     print(ucrl2_mdp)
