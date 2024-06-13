@@ -8,18 +8,11 @@ from simulation import *
 from util import *
 from frequentist import *
 
-error_bound = 0.01 # error bound for value iteration
-gamma = 0.95 # discount factor
-delta = 0.1
-time = 1
 
-# for k in range(1, end):
-
-def build_l1_mdp(model, measurement):
-    time_k = time
+def build_l1_mdp(model, measurement, time, delta=0.1):
     number_of_states = len(model.states)
     number_of_actions = max(len(state.actions) for state in model.states)
-    c = 14 * number_of_states * math.log(number_of_actions * time_k / delta)
+    c = 14 * number_of_states * math.log(number_of_actions * time / delta)
     distance = {
         (state.id, action.id): math.sqrt(c / max(1, measurement.get_total_frequency(state.id, action.id)))
         for state in model.states
@@ -34,7 +27,7 @@ def get_supremum_policy(measurement, distance, V, state_id, action_id):
     policy[state_order[0]] = min(1, measurement.get_probability(state_id, action_id, state_order[0]) + distance[(state_id, action_id)] / 2)
     for j in range(1, m):
         policy[state_order[j]] = measurement.get_probability(state_id, action_id, state_order[j])
-    l = m
+    l = m - 1
     while sum(policy.values()) > 1:
         policy[state_order[l]] = max(0, 1 - (sum(policy.values()) - policy[state_order[l]]))
         l -= 1
@@ -42,7 +35,7 @@ def get_supremum_policy(measurement, distance, V, state_id, action_id):
     value = sum(policy[state] * V[state] for state in V.keys())
     return policy, value
 
-def compute_optimistic_policy(model, measurement, distance):
+def compute_optimistic_policy(model, measurement, distance, gamma=0.95, error_bound=0.01):
     model_rewards = rewards_from_model(model)
     optimistic_policy = {}
     V_old = { state.id: 0 for state in model.states }
@@ -67,26 +60,37 @@ def sample_ucrl2(sample_model, measurement, policy):
     sa_counter = Counter() # state-action counter
     simulator = stormpy.simulator.create_simulator(sample_model, seed=42)
     state, _, _ = simulator.restart()
+    time_steps = 0
     while sa_counter[(state, policy[state])] < max(1, measurement.get_total_frequency(state, policy[state])):
         action = policy[state]
         sa_counter[(state, action)] += 1
         next_state, _, _ = simulator.step(action)
         sas_counter[(state, action, next_state)] += 1
         state = next_state
-        # time += 1
-    return sas_counter, sa_counter
+        time_steps += 1
+    return sas_counter, sa_counter, time_steps
+
+# gamma: discount factor, error_bound: for value iteration
+def ucrl2(sample_model, number_of_episodes=10, delta=0.1, gamma=0.95, error_bound=0.01):
+    time = 1
+
+    for k in range(number_of_episodes):
+        measurement = Measurement()
+        distance = build_l1_mdp(sample_model, measurement, time, delta)
+        optimistic_policy = compute_optimistic_policy(sample_model, measurement, distance, gamma, error_bound)
+        sas_counter, sa_counter, time_steps = sample_ucrl2(model, measurement, optimistic_policy)
+        measurement.add_frequencies(sas_counter, sa_counter)
+        time += time_steps
+    
+    ucrl2_mdp = frequentist(sample_model, measurement, ucrl2=True)
+    l1mdp = (ucrl2_mdp, distance)
+    return l1mdp
+
 
 if __name__ == "__main__":
     model_file = stormpy.examples.files.prism_mdp_slipgrid
     model_model = stormpy.parse_prism_program(model_file)
     model = stormpy.build_model(model_model)
 
-    measurement = Measurement()
-    distance = build_l1_mdp(model, measurement)
-    optimistic_policy = compute_optimistic_policy(model, measurement, distance)
-    sas_counter, sa_counter = sample_ucrl2(model, measurement, optimistic_policy)
-    measurement.add_frequencies(sas_counter, sa_counter)
-
-    ucrl2_mdp = frequentist(model, measurement, ucrl2=True)
-    print(ucrl2_mdp)
-    print(distance)
+    l1mdp = ucrl2(model, number_of_episodes=10, delta=0.1, gamma=0.95, error_bound=0.01)
+    print(l1mdp[0])
