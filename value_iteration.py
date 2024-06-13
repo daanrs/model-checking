@@ -150,7 +150,7 @@ def apply_policy(model, scheduler):
         stormpy.SparseModelComponents(
             transition_matrix = matrix,
             state_labeling=model.labeling,
-            reward_models = model.reward_models
+            reward_models = state_rewards_from_policy(model, scheduler)
         )
     )
     

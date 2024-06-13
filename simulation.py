@@ -36,14 +36,14 @@ class Measurement:
                 / self.total_frequencies[(state_from, action)]
             )
     
-def simulate_policy(model, num_paths = 100, max_path_length = 200, measurement = Measurement(), scheduler = None):
+def simulate_policy(model, policy, num_paths = 100, max_path_length = 200, measurement = Measurement()):
     stop_next_round = False
     simulator = stormpy.simulator.create_simulator(model, seed=42)
     for m in range(num_paths):
         state_from, _, _ = simulator.restart()
         for n in range(max_path_length):
-            if scheduler:
-                action = scheduler[state_from]
+            if policy:
+                action = policy[state_from]
             else:
                 actions = simulator.available_actions()
                 select_action = random.randint(0,len(actions)-1)

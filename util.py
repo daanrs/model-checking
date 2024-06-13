@@ -37,7 +37,7 @@ def update_mdp(model, new_matrix):
 def state_rewards_from_model(model):
     rewards = model.reward_models['']
     if not rewards.has_state_rewards:
-        raise Exception("we only deal with state-action rewards")
+        raise Exception("we only deal with state rewards")
 
     state_actions = [
         (s, a)
@@ -49,6 +49,23 @@ def state_rewards_from_model(model):
         (state.id, action.id): rewards.get_state_reward(i)
         for i, (state, action) in enumerate(state_actions)
     }
+
+
+def state_rewards_from_policy(model, policy):
+    rewards = model.reward_models['']
+
+    if rewards.has_state_rewards and not rewards.has_state_action_rewards:
+        return rewards
+    elif not rewards.has_state_rewards and rewards.has_state_action_rewards:
+        state_rewards = [
+            rewards.get_state_action_reward(model.get_choice_index(state.id, policy[state.id]))
+            for state in model.states
+        ]
+
+        return {'': stormpy.SparseRewardModel(optional_state_reward_vector=state_rewards)}
+    else:
+        raise Exception("model has both state and state-action rewards")
+   
 
 def rewards_from_model(model):
     rewards = model.reward_models['']
