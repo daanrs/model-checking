@@ -122,27 +122,6 @@ def interval_next(model, vs, rewards, gamma):
     )
 
 
-def next_with_policy(model, policy, vs, rewards, gamma):
-    maxes = { state.id : 
-        (
-            (action := state.actions[policy[state.id]]).id, 
-            (
-                rewards[(state.id, action.id)]
-                + gamma * sum(
-                    transition.value() * vs[transition.column]
-                    for transition in action.transitions
-                )
-            )
-        )
-        for state in model.states
-    }
-
-    return (
-        { k: v[0] for k, v in maxes.items() },
-        { k: v[1] for k, v in maxes.items() }
-    )
-
-
 def apply_policy(model, scheduler):
     builder = stormpy.SparseMatrixBuilder(
         rows=0, 
@@ -169,6 +148,67 @@ def apply_policy(model, scheduler):
     )
     
 
+def value_iter(model, rewards, gamma, max_iter, precision = 0.01):
+    vs = {state.id: 0 for state in model.states}
+    error = 1
+    iter = 0
+
+    while (error > precision):
+        if iter > max_iter:
+            raise Exception(f"could not converge within {max_iter} iterations")
+
+        args, vs_next = next(model, vs, rewards, gamma)
+
+        error = max(abs(vs_next[i] - vs[i]) for i in vs)
+        vs = vs_next
+
+        iter += 1
+
+
+    return (args, vs)
+
+
+def interval_value_iter(model, rewards, gamma, max_iter, precision = 0.01):
+    vs = {state.id: 0 for state in model.states}
+    error = 1
+    iter = 0
+
+    while (error > precision):
+        if iter > max_iter:
+            raise Exception(f"could not converge within {max_iter} iterations")
+
+        args, vs_next = interval_next(model, vs, rewards, gamma)
+
+        error = max(abs(vs_next[i] - vs[i]) for i in vs)
+        vs = vs_next
+
+        iter += 1
+
+
+    return (args, vs)
+
+
+# def next_with_policy(model, policy, vs, rewards, gamma):
+#     maxes = { state.id : 
+#         (
+#             (action := state.actions[policy[state.id]]).id, 
+#             (
+#                 rewards[(state.id, action.id)]
+#                 + gamma * sum(
+#                     transition.value() * vs[transition.column]
+#                     for transition in action.transitions
+#                 )
+#             )
+#         )
+#         for state in model.states
+#     }
+
+#     return (
+#         { k: v[0] for k, v in maxes.items() },
+#         { k: v[1] for k, v in maxes.items() }
+#     )
+
+
 # def value_iter_with_policy(model, rewards, policy, gamma, max_iter, precision = 0.01):
 #     vs = list(0 for _ in model.states)
 #     error = 1
@@ -187,41 +227,3 @@ def apply_policy(model, scheduler):
 
 
 #     return (args, vs)
-
-def value_iter(model, rewards, gamma, max_iter, precision = 0.01):
-    vs = list(0 for _ in model.states)
-    error = 1
-    iter = 0
-
-    while (error > precision):
-        if iter > max_iter:
-            raise Exception(f"could not converge within {max_iter} iterations")
-
-        args, vs_next = next(model, vs, rewards, gamma)
-
-        error = max(abs(vs_next[i] - vs[i]) for i in vs)
-        vs = vs_next
-
-        iter += 1
-
-
-    return (args, vs)
-
-def interval_value_iter(model, rewards, gamma, max_iter, precision = 0.01):
-    vs = list(0 for _ in model.states)
-    error = 1
-    iter = 0
-
-    while (error > precision):
-        if iter > max_iter:
-            raise Exception(f"could not converge within {max_iter} iterations")
-
-        args, vs_next = interval_next(model, vs, rewards, gamma)
-
-        error = max(abs(vs_next[i] - vs[i]) for i in vs)
-        vs = vs_next
-
-        iter += 1
-
-
-    return (args, vs)
