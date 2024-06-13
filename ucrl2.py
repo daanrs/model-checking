@@ -72,15 +72,15 @@ def sample_ucrl2(init_model, measurement, policy):
     return sas_counter, sa_counter, time_steps
 
 # gamma: discount factor, error_bound: for value iteration
-def ucrl2(init_model, formula, number_of_episodes=10, delta=0.1, gamma=0.95, error_bound=0.01):
+def ucrl2(init_model, formula, loops=10, delta=0.1, gamma=0.95, error_bound=0.01):
     time = 1
     data = []
 
-    for k in range(number_of_episodes):
+    for k in range(loops):
         measurement = Measurement()
         distance = build_l1_mdp(init_model, measurement, time, delta)
         optimistic_policy = compute_optimistic_policy(init_model, measurement, distance, gamma, error_bound)
-        sas_counter, sa_counter, time_steps = sample_ucrl2(model, measurement, optimistic_policy)
+        sas_counter, sa_counter, time_steps = sample_ucrl2(init_model, measurement, optimistic_policy)
         measurement.add_frequencies(sas_counter, sa_counter)
         time += time_steps
 
@@ -103,6 +103,6 @@ if __name__ == "__main__":
     formula = properties[0]
     model = stormpy.build_model(program, properties)
 
-    l1mdp, data = ucrl2(model, formula, number_of_episodes=10, delta=0.1, gamma=0.95, error_bound=0.01)
+    l1mdp, data = ucrl2(model, formula, loops=10, delta=0.1, gamma=0.95, error_bound=0.01)
     print(l1mdp[0])
     print(data)

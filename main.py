@@ -7,6 +7,8 @@ from util import *
 from lui import *
 from scheduler import *
 from frequentist import *
+from pac_learning import *
+from ucrl2 import *
 from simulation import *
 from value_iteration import *
 
@@ -95,6 +97,10 @@ def main_pac(init_model, formula, loops=10, gamma=0.9, max_iter=1000):
 
     return data
 
+def main_ucrl2(init_model, formula, loops=10, gamma=0.9, max_iter=1000):
+    l1mdp, data = ucrl2(model, formula, loops=loops, delta=0.1, gamma=gamma, error_bound=0.01)
+    return data
+
 
 if __name__ == "__main__":
     random.seed(10)
@@ -113,5 +119,6 @@ if __name__ == "__main__":
     # data = main_frequentist(model, formula=formula)
     # data = main_lui(model, loops=100, formula=formula)
     data = main_pac(model, formula=formula)
+    # data = main_ucrl2(model, formula=formula)
     print(data)
 
