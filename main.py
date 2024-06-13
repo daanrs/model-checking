@@ -60,7 +60,7 @@ def main2(init_model, loops=10):
         value = real_values[initial_state]
         data.append(value)
 
-        measurement = simulate_policy(init_model, , measurement = measurement, scheduler = policy)
+        measurement = simulate_policy(init_model, measurement = measurement, scheduler = policy)
         model = frequentist(model, measurement)
 
     return data
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     slipgrid = stormpy.parse_prism_program(stormpy.examples.files.prism_mdp_slipgrid)
     slipgrid_model = stormpy.build_model(slipgrid)
 
-    # data = main2(slipgrid_model)
-    data = main(slipgrid_model)
+    data = main2(slipgrid_model)
+    # data = main(slipgrid_model)
     print(data)
 
