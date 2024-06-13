@@ -79,7 +79,7 @@ def lui_create_matrix(model, measurement, strengths):
             else:
                 for transition in action.transitions:
                     act = action.id + nr_actions
-                    builder.add_next_value(act, transition.column, transition.value)
+                    builder.add_next_value(act, transition.column, transition.value())
 
         nr_actions = nr_actions + len(state.actions)
 

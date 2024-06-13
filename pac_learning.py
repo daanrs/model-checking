@@ -28,11 +28,11 @@ def pac_create_matrix(model, measurement, error_rate = 0.1):
     for state in model.states:
         builder.new_row_group(number_actions)
         for action in state.actions:
-            N = measurement.get_total_frequency(state.id, action.id)
-            delta_M = math.sqrt(math.log(2 / epsilon_M) / (2 * N)) # different for every (state, action) pair
-
             act = action.id + number_actions
             if (measurement.has_estimate(state.id, action.id)):
+                N = measurement.get_total_frequency(state.id, action.id)
+                delta_M = math.sqrt(math.log(2 / epsilon_M) / (2 * N)) # different for every (state, action) pair
+
                 # update probability estimate with PAC interval
                 for transition in action.transitions:
                     estimate = measurement.get_probability(state.id, action.id, transition.column)
@@ -41,7 +41,7 @@ def pac_create_matrix(model, measurement, error_rate = 0.1):
             else:
                 # no probability estimate available, keep previous probability interval
                 for transition in action.transitions:
-                    builder.add_next_value(act, transition.column, transition.value)
+                    builder.add_next_value(act, transition.column, transition.value())
         number_actions += len(state.actions)
     
     transition_matrix = builder.build()

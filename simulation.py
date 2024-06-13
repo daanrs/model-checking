@@ -27,8 +27,8 @@ class Measurement:
 
     def get_probability(self, state_from, action, state_to):
         if not self.has_estimate(state_from, action):
-            return 0
-            # raise Exception("Tried to get probability for a state-action pair which has never been measured")
+            # return 0
+            raise Exception("Tried to get probability for a state-action pair which has never been measured")
         else:
             return (
                 self.frequencies[(state_from, action, state_to)] 

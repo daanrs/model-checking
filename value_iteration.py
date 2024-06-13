@@ -52,15 +52,16 @@ def min_distribution(vs):
     vs = list(sorted(vs))
     limit = sum(v.get_lower() for v in vs)
 
-    while limit - vs[i].get_lower() + vs[i].get_upper() < 1:
+    while i < len(vs) and (limit - vs[i].get_lower() + vs[i].get_upper() < 1):
         limit = limit - vs[i].get_lower() + vs[i].get_upper()
         vs[i].is_upper()
         i += 1
 
-    vs[i].set_prob(1 - (limit - vs[i].get_lower()))
+    if i < len(vs):
+        vs[i].set_prob(1 - (limit - vs[i].get_lower()))
 
-    for k in range(i + 1, len(vs)):
-        vs[k].is_lower()
+        for k in range(i + 1, len(vs)):
+            vs[k].is_lower()
 
     return {v.id: v.get_prob() for v in vs}
 
@@ -154,7 +155,7 @@ def apply_scheduler(model, scheduler):
     )
     
 
-def value_iter_with_policy(model, rewards, policy, precision = 0.01, gamma = 0.9, max_iter = 100):
+def value_iter_with_policy(model, rewards, policy, gamma, max_iter, precision = 0.01):
     vs = list(0 for _ in model.states)
     error = 1
     iter = 0
@@ -176,7 +177,7 @@ def value_iter_with_policy(model, rewards, policy, precision = 0.01, gamma = 0.9
 
     return (args, vs)
 
-def value_iter(model, rewards, precision = 0.01, gamma = 0.9, max_iter = 100):
+def value_iter(model, rewards, gamma, max_iter, precision = 0.01):
     vs = list(0 for _ in model.states)
     error = 1
     iter = 0
@@ -198,7 +199,7 @@ def value_iter(model, rewards, precision = 0.01, gamma = 0.9, max_iter = 100):
 
     return (args, vs)
 
-def interval_value_iter(model, rewards, precision = 0.01, gamma = 0.9, max_iter = 100):
+def interval_value_iter(model, rewards, gamma, max_iter, precision = 0.01):
     vs = list(0 for _ in model.states)
     error = 1
     iter = 0
