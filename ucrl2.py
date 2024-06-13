@@ -7,6 +7,7 @@ from collections import Counter
 from simulation import *
 from util import *
 from frequentist import *
+from value_iteration import *
 
 
 def build_l1_mdp(model, measurement, time, delta=0.1):
@@ -36,7 +37,7 @@ def get_supremum_policy(measurement, distance, V, state_id, action_id):
     return policy, value
 
 def compute_optimistic_policy(model, measurement, distance, gamma=0.95, error_bound=0.01):
-    model_rewards = rewards_from_model(model)
+    model_rewards = state_rewards_from_model(model)
     optimistic_policy = {}
     V_old = { state.id: 0 for state in model.states }
     V_new = {}
@@ -55,10 +56,10 @@ def compute_optimistic_policy(model, measurement, distance, gamma=0.95, error_bo
         V_old = V_new
     return optimistic_policy
 
-def sample_ucrl2(sample_model, measurement, policy):
+def sample_ucrl2(init_model, measurement, policy):
     sas_counter = Counter() # state-action-state counter
     sa_counter = Counter() # state-action counter
-    simulator = stormpy.simulator.create_simulator(sample_model, seed=42)
+    simulator = stormpy.simulator.create_simulator(init_model, seed=42)
     state, _, _ = simulator.restart()
     time_steps = 0
     while sa_counter[(state, policy[state])] < max(1, measurement.get_total_frequency(state, policy[state])):
@@ -71,26 +72,37 @@ def sample_ucrl2(sample_model, measurement, policy):
     return sas_counter, sa_counter, time_steps
 
 # gamma: discount factor, error_bound: for value iteration
-def ucrl2(sample_model, number_of_episodes=10, delta=0.1, gamma=0.95, error_bound=0.01):
+def ucrl2(init_model, formula, number_of_episodes=10, delta=0.1, gamma=0.95, error_bound=0.01):
     time = 1
+    data = []
 
     for k in range(number_of_episodes):
         measurement = Measurement()
-        distance = build_l1_mdp(sample_model, measurement, time, delta)
-        optimistic_policy = compute_optimistic_policy(sample_model, measurement, distance, gamma, error_bound)
+        distance = build_l1_mdp(init_model, measurement, time, delta)
+        optimistic_policy = compute_optimistic_policy(init_model, measurement, distance, gamma, error_bound)
         sas_counter, sa_counter, time_steps = sample_ucrl2(model, measurement, optimistic_policy)
         measurement.add_frequencies(sas_counter, sa_counter)
         time += time_steps
+
+        policy_as_list = [optimistic_policy[i] for i in range(len(optimistic_policy))]
+        model_dtmc = apply_policy(init_model, policy_as_list)
+        result = stormpy.model_checking(model_dtmc, formula)
+        initial_state = model_dtmc.initial_states[0]
+        value = result.at(initial_state)
+        data.append(value)
     
-    ucrl2_mdp = frequentist(sample_model, measurement, ucrl2=True)
+    ucrl2_mdp = frequentist(init_model, measurement, ucrl2=True)
     l1mdp = (ucrl2_mdp, distance)
-    return l1mdp
+    return l1mdp, data
 
 
 if __name__ == "__main__":
-    model_file = stormpy.examples.files.prism_mdp_slipgrid
-    model_model = stormpy.parse_prism_program(model_file)
-    model = stormpy.build_model(model_model)
+    program = stormpy.parse_prism_program('models/bet_fav.prism')
+    prop = "R=? [F \"done\"]"
+    properties = stormpy.parse_properties(prop, program, None)
+    formula = properties[0]
+    model = stormpy.build_model(program, properties)
 
-    l1mdp = ucrl2(model, number_of_episodes=10, delta=0.1, gamma=0.95, error_bound=0.01)
+    l1mdp, data = ucrl2(model, formula, number_of_episodes=10, delta=0.1, gamma=0.95, error_bound=0.01)
     print(l1mdp[0])
+    print(data)
