@@ -31,7 +31,7 @@ class X:
         self.prob = prob
 
    
-def min_distr(vs, action):
+def min_distr(vs, action, optimistic):
     vals = [
         X(
             id = transition.column,
@@ -42,13 +42,13 @@ def min_distr(vs, action):
         for transition in action.transitions
     ]
 
-    return min_distribution(vals)
+    return min_distribution(vals, optimistic)
         
 
-def min_distribution(vs):
+def min_distribution(vs, optimistic):
     i = 0
 
-    vs = list(sorted(vs))
+    vs = list(sorted(vs, reverse=optimistic))
     limit = sum(v.get_lower() for v in vs)
 
     while i < len(vs) and (limit - vs[i].get_lower() + vs[i].get_upper() < 1):
@@ -93,7 +93,7 @@ def next(model, vs, rewards, gamma):
         { k: v[1] for k, v in maxes.items() }
     )
 
-def interval_next(model, vs, rewards, gamma):
+def interval_next(model, vs, rewards, gamma, optimistic):
     vals = { state.id : 
         [
             (
@@ -101,7 +101,7 @@ def interval_next(model, vs, rewards, gamma):
                 (
                     rewards[(state.id, action.id)]
                     + gamma * sum(
-                        min_distr(vs, action)[transition.column] * vs[transition.column]
+                        min_distr(vs, action, optimistic)[transition.column] * vs[transition.column]
                         for transition in action.transitions
                     )
                 )
@@ -168,7 +168,7 @@ def value_iter(model, rewards, gamma, max_iter, precision = 0.01):
     return (args, vs)
 
 
-def interval_value_iter(model, rewards, gamma, max_iter, precision = 0.01):
+def interval_value_iter(model, rewards, gamma, max_iter, precision = 0.01, optimistic=False):
     vs = {state.id: 0 for state in model.states}
     error = 1
     iter = 0
@@ -177,7 +177,7 @@ def interval_value_iter(model, rewards, gamma, max_iter, precision = 0.01):
         if iter > max_iter:
             raise Exception(f"could not converge within {max_iter} iterations")
 
-        args, vs_next = interval_next(model, vs, rewards, gamma)
+        args, vs_next = interval_next(model, vs, rewards, gamma, optimistic)
 
         error = max(abs(vs_next[i] - vs[i]) for i in vs)
         vs = vs_next

@@ -30,13 +30,14 @@ def main_pac(init_model, paths_per_run, formula, rewards, gamma, max_iter=1000):
 
     # with scheduler
     for nr_paths in paths_per_run:
-        measurement = simulate_policy(init_model, measurement=measurement, num_paths = nr_paths, policy=policy)
+        measurement = simulate(init_model, measurement=measurement, num_paths = nr_paths, policy=policy)
         paths_so_far += nr_paths
 
         model = pac_step(model, measurement)
 
-        policy, _ = interval_value_iter(model, rewards, gamma=gamma, max_iter=max_iter)
-        model_dtmc = apply_policy(init_model, policy)
+        policy, _ = interval_value_iter(model, rewards, gamma=gamma, max_iter=max_iter, optimistic=True)
+        robust_policy, _ = interval_value_iter(model, rewards, gamma=gamma, max_iter=max_iter)
+        model_dtmc = apply_policy(init_model, robust_policy)
 
         result = stormpy.model_checking(model_dtmc, formula)
         initial_state = model.initial_states[0]
@@ -60,13 +61,13 @@ def main_frequentist(init_model, paths_per_run, formula, rewards, gamma, max_ite
 
     # with scheduler
     for nr_paths in paths_per_run:
-        measurement = simulate_policy(init_model, measurement=measurement, num_paths = nr_paths, policy=policy)
+        measurement = simulate(init_model, measurement=measurement, num_paths = nr_paths, policy=policy)
         paths_so_far += nr_paths
 
         model = frequentist(model=init_model, measurement=measurement)
 
-        policy, _ = value_iter(model, rewards, gamma=gamma, max_iter=max_iter)
-        model_dtmc = apply_policy(init_model, policy)
+        robust_policy, _ = value_iter(model, rewards, gamma=gamma, max_iter=max_iter)
+        model_dtmc = apply_policy(init_model, robust_policy)
 
         result = stormpy.model_checking(model_dtmc, formula)
         initial_state = model.initial_states[0]
@@ -91,13 +92,13 @@ def main_map(init_model, paths_per_run, formula, rewards, gamma, max_iter=1000):
 
     # with scheduler
     for nr_paths in paths_per_run:
-        measurement = simulate_policy(init_model, measurement=measurement, num_paths = nr_paths, policy=policy)
+        measurement = simulate(init_model, measurement=measurement, num_paths = nr_paths, policy=policy)
         paths_so_far += nr_paths
 
         model = map(model=init_model, measurement=measurement, prior=prior)
 
-        policy, _ = value_iter(model, rewards, gamma=gamma, max_iter=max_iter)
-        model_dtmc = apply_policy(init_model, policy)
+        robust_policy, _ = value_iter(model, rewards, gamma=gamma, max_iter=max_iter)
+        model_dtmc = apply_policy(init_model, robust_policy)
 
         result = stormpy.model_checking(model_dtmc, formula)
         initial_state = model.initial_states[0]
@@ -122,13 +123,14 @@ def main_lui(init_model, paths_per_run, formula, rewards, gamma, max_iter=1000):
 
     # with scheduler
     for nr_paths in paths_per_run:
-        measurement = simulate_policy(init_model, num_paths = nr_paths, policy=policy)
+        measurement = simulate(init_model, num_paths = nr_paths, policy=policy)
         paths_so_far += nr_paths
 
         model, strengths = lui_step(model, measurement, strengths)
 
-        policy, _ = interval_value_iter(model, rewards, gamma=gamma, max_iter=max_iter)
-        model_dtmc = apply_policy(init_model, policy)
+        policy, _ = interval_value_iter(model, rewards, gamma=gamma, max_iter=max_iter, optimistic=True)
+        robust_policy, _ = interval_value_iter(model, rewards, gamma=gamma, max_iter=max_iter)
+        model_dtmc = apply_policy(init_model, robust_policy)
 
         result = stormpy.model_checking(model_dtmc, formula)
         initial_state = model.initial_states[0]

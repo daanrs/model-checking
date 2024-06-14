@@ -2,7 +2,6 @@ import stormpy
 import pycarl
 
 from collections import Counter
-from simulation import simulate
 
 def update_interval_mdp(model, new_matrix):
     components = stormpy.SparseIntervalModelComponents(
