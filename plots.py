@@ -24,6 +24,7 @@ if __name__ == '__main__':
             ax.plot(x, y, label=alg_name)
 
         ax.legend()
+        ax.set_title(f'{name}')
 
         plt.savefig(f'plots/{name}.pdf')
             

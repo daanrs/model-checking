@@ -61,14 +61,8 @@ def value_iteration_next(model, measurement, distance, vs, rewards, gamma):
         { k: v[1] for k, v in maxes.items() }
     )
 
-def compute_optimistic_policy(model, measurement, distance, gamma, error_bound):
+def compute_optimistic_policy(model, measurement, distance, gamma, error_bound, rewards):
     max_iter = 200
-    if model.reward_models[''].has_state_action_rewards:
-        rewards = rewards_from_model(model)
-    elif model.reward_models[''].has_state_rewards:
-        rewards = state_rewards_from_model(model)
-    else:
-        raise Exception("model has no state-action or state rewards")
     vs = { state.id: 0 for state in model.states }
     error = error_bound + 1
     iter = 0
@@ -105,7 +99,7 @@ def sample_ucrl2(init_model, measurement, policy):
     return sas_counter, sa_counter, time_steps, trajectories
 
 # gamma: discount factor, error_bound: for value iteration
-def ucrl2(init_model, formula, loops=10, delta=0.1, gamma=0.01, error_bound=0.01):
+def ucrl2(init_model, formula, rewards, loops=10, delta=0.1, gamma=0.01, error_bound=0.01):
     time = 1
     data = []
     measurement = Measurement()
@@ -114,7 +108,7 @@ def ucrl2(init_model, formula, loops=10, delta=0.1, gamma=0.01, error_bound=0.01
     for k in range(loops):
         # print(f"Total frequencies: {measurement.total_frequencies}")
         distance = build_l1_mdp(init_model, measurement, time, delta)
-        optimistic_policy = compute_optimistic_policy(init_model, measurement, distance, gamma, error_bound)
+        optimistic_policy = compute_optimistic_policy(init_model, measurement, distance, gamma, error_bound, rewards)
         sas_counter, sa_counter, time_steps, trajectories = sample_ucrl2(init_model, measurement, optimistic_policy)
         measurement.add_frequencies(sas_counter, sa_counter)
         time += time_steps

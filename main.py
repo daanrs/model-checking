@@ -138,8 +138,8 @@ def main_lui(init_model, paths_per_run, formula, rewards, gamma, max_iter=1000):
 
     return data
 
-def main_ucrl2(init_model, loops, formula, gamma):
-    _, data = ucrl2(init_model, formula, loops=loops, delta=0.1, gamma=gamma, error_bound=0.01)
+def main_ucrl2(init_model, loops, formula, gamma, rewards):
+    _, data = ucrl2(init_model, formula, loops=loops, delta=0.1, gamma=gamma, error_bound=0.01, rewards=rewards)
     return data
 
 
@@ -155,14 +155,14 @@ if __name__ == "__main__":
     formula=properties[0]
 
     model = stormpy.build_model(program, properties)
-    rewards = state_rewards_from_model(model)
+    rewards = state_action_rewards_from_model(model)
 
     df1 = {
         "map": main_map(model, paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         "frequentist": main_frequentist(model, paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         "lui": main_lui(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         "pac": main_pac(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
-        "ucrl2": main_ucrl2(model, loops=15, formula=formula, gamma=gamma)
+        "ucrl2": main_ucrl2(model, loops=15, formula=formula, gamma=gamma, rewards=rewards)
     }
 
     program = stormpy.parse_prism_program('models/bet_unfav.prism')
@@ -172,14 +172,14 @@ if __name__ == "__main__":
     formula=properties[0]
 
     model = stormpy.build_model(program, properties)
-    rewards = state_rewards_from_model(model)
+    rewards = state_action_rewards_from_model(model)
 
     df2 = {
         "map": main_map(model, paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         "frequentist": main_frequentist(model, paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         "lui": main_lui(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         "pac": main_pac(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
-        "ucrl2": main_ucrl2(model, loops=15, formula=formula, gamma=gamma)
+        "ucrl2": main_ucrl2(model, loops=15, formula=formula, gamma=gamma, rewards=rewards)
     }
 
     program = stormpy.parse_prism_program('models/bandit.prism')
@@ -189,14 +189,14 @@ if __name__ == "__main__":
     formula=properties[0]
 
     model = stormpy.build_model(program, properties)
-    rewards = rewards_from_model(model)
+    rewards = state_action_rewards_from_model(model)
 
     df3 = {
         "map": main_map(model, paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         "frequentist": main_frequentist(model, paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         "lui": main_lui(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         "pac": main_pac(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
-        "ucrl2": main_ucrl2(model, loops=15, formula=formula, gamma=gamma)
+        "ucrl2": main_ucrl2(model, loops=15, formula=formula, gamma=gamma, rewards=rewards)
     }
 
     df = {
