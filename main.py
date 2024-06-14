@@ -1,3 +1,4 @@
+import json
 import stormpy
 import stormpy.examples.files
 import pycarl
@@ -163,7 +164,6 @@ if __name__ == "__main__":
         "pac": main_pac(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         # "ucrl2": main_ucrl2(model, paths_per_run, formula)
     }
-    print(df1)
 
     program = stormpy.parse_prism_program('models/bet_unfav.prism')
     prop = "R=? [F \"done\"]"
@@ -181,7 +181,6 @@ if __name__ == "__main__":
         "pac": main_pac(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         # "ucrl2": main_ucrl2(model, paths_per_run, formula)
     }
-    print(df2)
 
     program = stormpy.parse_prism_program('models/bandit.prism')
     prop = "R=? [F \"goal\"]"
@@ -200,4 +199,11 @@ if __name__ == "__main__":
         # "ucrl2": main_ucrl2(model, paths_per_run, formula)
     }
 
-    print(df3)
+    df = {
+        'bet_fav': df1,
+        'bet_unfav': df2,
+        'bandit': df3
+    }    
+
+    with open('data.json', 'w') as f:
+        json.dump(df, f)
