@@ -15,8 +15,6 @@ titles = {
 
 if __name__ == '__main__':
     df = load_data()
-    # print(df)
-
 
     for name, alg in df.items():
         fig, ax = plt.subplots()

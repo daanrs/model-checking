@@ -106,7 +106,6 @@ def ucrl2(init_model, formula, rewards, loops=10, delta=0.1, gamma=0.01, error_b
     number_of_trajectories = 0
 
     for k in range(loops):
-        # print(f"Total frequencies: {measurement.total_frequencies}")
         distance = build_l1_mdp(init_model, measurement, time, delta)
         optimistic_policy = compute_optimistic_policy(init_model, measurement, distance, gamma, error_bound, rewards)
         sas_counter, sa_counter, time_steps, trajectories = sample_ucrl2(init_model, measurement, optimistic_policy)
