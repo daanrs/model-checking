@@ -7,6 +7,12 @@ def load_data(file='data.json'):
         return json.load(f)
 
 
+titles = {
+    'bet_fav': 'Betting Game Favourable',
+    'bet_unfav': 'Betting Game Unfavourable',
+    'bandit': 'Bandit'
+}
+
 if __name__ == '__main__':
     df = load_data()
     # print(df)
@@ -24,7 +30,7 @@ if __name__ == '__main__':
             ax.plot(x, y, label=alg_name)
 
         ax.legend()
-        ax.set_title(f'{name}')
+        ax.set_title(titles[name])
 
         plt.savefig(f'plots/{name}.pdf')
             
