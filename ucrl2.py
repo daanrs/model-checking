@@ -21,20 +21,20 @@ def build_l1_mdp(model, measurement, time, delta=0.1):
     }
     return distance
 
-def get_supremum_policy(measurement, distance, V, state_id, action_id):
+def get_supremum(measurement, distance, V, state_id, action_id):
     state_order = sorted(V.keys(), key=lambda x: V[x], reverse=True)
     m = len(state_order)
-    policy = {}
-    policy[state_order[0]] = min(1, measurement.get_probability(state_id, action_id, state_order[0], allow_no_estimate=True) + distance[(state_id, action_id)] / 2)
+    probabilities = {}
+    probabilities[state_order[0]] = min(1, measurement.get_probability(state_id, action_id, state_order[0], allow_no_estimate=True) + distance[(state_id, action_id)] / 2)
     for j in range(1, m):
-        policy[state_order[j]] = measurement.get_probability(state_id, action_id, state_order[j], allow_no_estimate=True)
+        probabilities[state_order[j]] = measurement.get_probability(state_id, action_id, state_order[j], allow_no_estimate=True)
     l = m - 1
-    while sum(policy.values()) > 1:
-        policy[state_order[l]] = max(0, 1 - (sum(policy.values()) - policy[state_order[l]]))
+    while sum(probabilities.values()) > 1:
+        probabilities[state_order[l]] = max(0, 1 - (sum(probabilities.values()) - probabilities[state_order[l]]))
         l -= 1
     
-    value = sum(policy[state] * V[state] for state in V.keys())
-    return policy, value
+    value = sum(probabilities[state] * V[state] for state in V.keys())
+    return value
 
 def value_iteration_next(model, measurement, distance, vs, rewards, gamma):
     vals = { state.id : 
@@ -43,7 +43,7 @@ def value_iteration_next(model, measurement, distance, vs, rewards, gamma):
                 action.id, 
                 (
                     rewards[(state.id, action.id)]
-                    + gamma * get_supremum_policy(measurement, distance, vs, state.id, action.id)[1]
+                    + gamma * get_supremum(measurement, distance, vs, state.id, action.id)
                 )
             )
             for action in state.actions
@@ -91,29 +91,36 @@ def sample_ucrl2(init_model, measurement, policy):
     simulator = stormpy.simulator.create_simulator(init_model, seed=42)
     state, _, _ = simulator.restart()
     time_steps = 0
-    while sa_counter[(state, policy[state])] < max(1, measurement.get_total_frequency(state, policy[state])) and not simulator.is_done():
+    trajectories = 1
+    while sa_counter[(state, policy[state])] < max(1, measurement.get_total_frequency(state, policy[state])):
         action = policy[state]
         sa_counter[(state, action)] += 1
         next_state, _, _ = simulator.step(action)
         sas_counter[(state, action, next_state)] += 1
-        state = next_state
+        if simulator.is_done():
+            state, _, _ = simulator.restart()
+            trajectories += 1
+        else:
+            state = next_state
         time_steps += 1
-    return sas_counter, sa_counter, time_steps
+    return sas_counter, sa_counter, time_steps, trajectories
 
 # gamma: discount factor, error_bound: for value iteration
 def ucrl2(init_model, formula, loops=10, delta=0.1, gamma=0.01, error_bound=0.01):
     time = 1
     data = []
     measurement = Measurement()
+    number_of_trajectories = 0
 
     for k in range(loops):
         print(f"Loop number: {k}")
         print(measurement.total_frequencies)
         distance = build_l1_mdp(init_model, measurement, time, delta)
         optimistic_policy = compute_optimistic_policy(init_model, measurement, distance, gamma, error_bound)
-        sas_counter, sa_counter, time_steps = sample_ucrl2(init_model, measurement, optimistic_policy)
+        sas_counter, sa_counter, time_steps, trajectories = sample_ucrl2(init_model, measurement, optimistic_policy)
         measurement.add_frequencies(sas_counter, sa_counter)
         time += time_steps
+        number_of_trajectories += trajectories
 
         model_dtmc = apply_policy(init_model, optimistic_policy)
         result = stormpy.model_checking(model_dtmc, formula)
@@ -123,7 +130,7 @@ def ucrl2(init_model, formula, loops=10, delta=0.1, gamma=0.01, error_bound=0.01
     
     ucrl2_mdp = frequentist(init_model, measurement, ucrl2=True)
     l1mdp = (ucrl2_mdp, distance)
-    return l1mdp, data
+    return l1mdp, data, number_of_trajectories
 
 
 if __name__ == "__main__":
@@ -134,6 +141,7 @@ if __name__ == "__main__":
     formula = properties[0]
     model = stormpy.build_model(program, properties)
 
-    l1mdp, data = ucrl2(model, formula, loops=30, delta=0.1, gamma=0.01, error_bound=0.1)
+    l1mdp, data, number_of_trajectories = ucrl2(model, formula, loops=30, delta=0.1, gamma=0.01, error_bound=0.1)
     print(l1mdp[0])
     print(data)
+    print("Trajectories: ", number_of_trajectories)
