@@ -22,6 +22,8 @@ if __name__ == '__main__':
         fig, ax = plt.subplots()
 
         ax.set_xscale('log')
+        ax.set_xlabel('Trajectory')
+        ax.set_ylabel('R [F T]')
         
         for alg_name, results in alg.items():
             x = np.array([r[0] for r in results])
