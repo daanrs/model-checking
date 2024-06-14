@@ -10,7 +10,7 @@ from frequentist import *
 from value_iteration import *
 
 
-def build_l1_mdp(model, measurement, time, delta=0.1):
+def build_l1_mdp(model, measurement, time, delta):
     number_of_states = len(model.states)
     number_of_actions = max(len(state.actions) for state in model.states)
     c = 14 * number_of_states * math.log(number_of_actions * time / delta)
@@ -61,7 +61,7 @@ def value_iteration_next(model, measurement, distance, vs, rewards, gamma):
         { k: v[1] for k, v in maxes.items() }
     )
 
-def compute_optimistic_policy(model, measurement, distance, gamma=0.01, error_bound=1):
+def compute_optimistic_policy(model, measurement, distance, gamma, error_bound):
     max_iter = 200
     if model.reward_models[''].has_state_action_rewards:
         rewards = rewards_from_model(model)
@@ -73,7 +73,6 @@ def compute_optimistic_policy(model, measurement, distance, gamma=0.01, error_bo
     error = error_bound + 1
     iter = 0
     while (error > error_bound):
-        # print(iter, error, error_bound, error > error_bound)
         if iter > max_iter:
             raise Exception(f"could not converge within {max_iter} iterations")
 
@@ -114,7 +113,7 @@ def ucrl2(init_model, formula, loops=10, delta=0.1, gamma=0.01, error_bound=0.01
 
     for k in range(loops):
         print(f"Loop number: {k}")
-        print(measurement.total_frequencies)
+        print(f"Total frequencies: {measurement.total_frequencies}")
         distance = build_l1_mdp(init_model, measurement, time, delta)
         optimistic_policy = compute_optimistic_policy(init_model, measurement, distance, gamma, error_bound)
         sas_counter, sa_counter, time_steps, trajectories = sample_ucrl2(init_model, measurement, optimistic_policy)
@@ -141,7 +140,7 @@ if __name__ == "__main__":
     formula = properties[0]
     model = stormpy.build_model(program, properties)
 
-    l1mdp, data, number_of_trajectories = ucrl2(model, formula, loops=30, delta=0.1, gamma=0.01, error_bound=0.1)
+    l1mdp, data, number_of_trajectories = ucrl2(model, formula)
     print(l1mdp[0])
     print(data)
     print("Trajectories: ", number_of_trajectories)
