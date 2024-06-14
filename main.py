@@ -198,7 +198,7 @@ if __name__ == "__main__":
         "frequentist": main_frequentist(model, paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         "lui": main_lui(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         "pac": main_pac(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
-        "ucrl2": main_ucrl2(model, loops=20, formula=formula, gamma=gamma, rewards=rewards)
+        "ucrl2": main_ucrl2(model, loops=90, formula=formula, gamma=gamma, rewards=rewards)
     }
 
     df = {

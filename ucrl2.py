@@ -126,13 +126,14 @@ def ucrl2(init_model, formula, rewards, loops=10, delta=0.1, gamma=0.01, error_b
 
 
 if __name__ == "__main__":
-    program = stormpy.parse_prism_program('models/bet_fav.prism')
-    # prop = "R=? [F \"goal\"]"
-    prop = "R=? [F \"done\"]"
+    program = stormpy.parse_prism_program('models/bandit.prism')
+    prop = "R=? [F \"goal\"]"
+    # prop = "R=? [F \"done\"]"
     properties = stormpy.parse_properties(prop, program, None)
     formula = properties[0]
     model = stormpy.build_model(program, properties)
+    rewards = state_action_rewards_from_model(model)
 
-    l1mdp, data = ucrl2(model, formula)
+    l1mdp, data = ucrl2(model, formula, rewards, loops=90)
     print(l1mdp[0])
     print(data)
