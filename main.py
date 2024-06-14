@@ -138,8 +138,8 @@ def main_lui(init_model, paths_per_run, formula, rewards, gamma, max_iter=1000):
 
     return data
 
-def main_ucrl2(init_model, formula, gamma, loops=10, max_iter=1000):
-    l1mdp, data = ucrl2(model, formula, loops=loops, delta=0.1, gamma=gamma, error_bound=0.01)
+def main_ucrl2(init_model, loops, formula, gamma):
+    _, data = ucrl2(init_model, formula, loops=loops, delta=0.1, gamma=gamma, error_bound=0.01)
     return data
 
 
@@ -162,7 +162,7 @@ if __name__ == "__main__":
         "frequentist": main_frequentist(model, paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         "lui": main_lui(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         "pac": main_pac(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
-        # "ucrl2": main_ucrl2(model, paths_per_run, formula)
+        "ucrl2": main_ucrl2(model, loops=15, formula=formula, gamma=gamma)
     }
 
     program = stormpy.parse_prism_program('models/bet_unfav.prism')
@@ -179,7 +179,7 @@ if __name__ == "__main__":
         "frequentist": main_frequentist(model, paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         "lui": main_lui(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         "pac": main_pac(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
-        # "ucrl2": main_ucrl2(model, paths_per_run, formula)
+        "ucrl2": main_ucrl2(model, loops=15, formula=formula, gamma=gamma)
     }
 
     program = stormpy.parse_prism_program('models/bandit.prism')
@@ -196,7 +196,7 @@ if __name__ == "__main__":
         "frequentist": main_frequentist(model, paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         "lui": main_lui(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         "pac": main_pac(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
-        # "ucrl2": main_ucrl2(model, paths_per_run, formula)
+        "ucrl2": main_ucrl2(model, loops=15, formula=formula, gamma=gamma)
     }
 
     df = {
