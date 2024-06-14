@@ -14,7 +14,7 @@ from simulation import *
 from value_iteration import *
 
 
-def main_pac(init_model, paths_per_run, formula, rewards, gamma=0.9, max_iter=1000):
+def main_pac(init_model, paths_per_run, formula, rewards, gamma, max_iter=1000):
     if len(paths_per_run) < 1:
         raise Exception("empty paths_per_run")
 
@@ -46,7 +46,7 @@ def main_pac(init_model, paths_per_run, formula, rewards, gamma=0.9, max_iter=10
     return data
 
 
-def main_frequentist(init_model, paths_per_run, formula, rewards, gamma=0.9, max_iter=1000):
+def main_frequentist(init_model, paths_per_run, formula, rewards, gamma, max_iter=1000):
     if len(paths_per_run) < 1:
         raise Exception("empty paths_per_run")
 
@@ -76,7 +76,7 @@ def main_frequentist(init_model, paths_per_run, formula, rewards, gamma=0.9, max
     return data
 
 
-def main_map(init_model, paths_per_run, formula, rewards, gamma=0.9, max_iter=1000):
+def main_map(init_model, paths_per_run, formula, rewards, gamma, max_iter=1000):
     if len(paths_per_run) < 1:
         raise Exception("empty paths_per_run")
 
@@ -107,7 +107,7 @@ def main_map(init_model, paths_per_run, formula, rewards, gamma=0.9, max_iter=10
     return data
 
 
-def main_lui(init_model, paths_per_run, formula, rewards, gamma=0.9, max_iter=1000):
+def main_lui(init_model, paths_per_run, formula, rewards, gamma, max_iter=1000):
     if len(paths_per_run) < 1:
         raise Exception("empty paths_per_run")
 
@@ -137,7 +137,7 @@ def main_lui(init_model, paths_per_run, formula, rewards, gamma=0.9, max_iter=10
 
     return data
 
-def main_ucrl2(init_model, formula, loops=10, gamma=0.9, max_iter=1000):
+def main_ucrl2(init_model, formula, gamma, loops=10, max_iter=1000):
     l1mdp, data = ucrl2(model, formula, loops=loops, delta=0.1, gamma=gamma, error_bound=0.01)
     return data
 
@@ -145,42 +145,43 @@ def main_ucrl2(init_model, formula, loops=10, gamma=0.9, max_iter=1000):
 if __name__ == "__main__":
     random.seed(10)
     paths_per_run = list(10 * (2**i) for i in range(10))
+    gamma = 0.01
 
-    # program = stormpy.parse_prism_program('models/bet_fav.prism')
-    # prop = "R=? [F \"done\"]"
-    # properties = stormpy.parse_properties(prop, program, None)
+    program = stormpy.parse_prism_program('models/bet_fav.prism')
+    prop = "R=? [F \"done\"]"
+    properties = stormpy.parse_properties(prop, program, None)
 
-    # formula=properties[0]
+    formula=properties[0]
 
-    # model = stormpy.build_model(program, properties)
-    # rewards = state_rewards_from_model(model)
+    model = stormpy.build_model(program, properties)
+    rewards = state_rewards_from_model(model)
 
-    # df1 = {
-    #     "map": main_map(model, paths_per_run, formula, rewards=rewards),
-    #     "frequentist": main_frequentist(model, paths_per_run, formula, rewards=rewards),
-    #     "lui": main_lui(model, paths_per_run=paths_per_run, formula=formula, rewards=rewards),
-    #     "pac": main_pac(model, paths_per_run=paths_per_run, formula=formula, rewards=rewards),
-    #     # "ucrl2": main_ucrl2(model, paths_per_run, formula)
-    # }
-    # print(df1)
+    df1 = {
+        "map": main_map(model, paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
+        "frequentist": main_frequentist(model, paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
+        "lui": main_lui(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
+        "pac": main_pac(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
+        # "ucrl2": main_ucrl2(model, paths_per_run, formula)
+    }
+    print(df1)
 
-    # program = stormpy.parse_prism_program('models/bet_unfav.prism')
-    # prop = "R=? [F \"done\"]"
-    # properties = stormpy.parse_properties(prop, program, None)
+    program = stormpy.parse_prism_program('models/bet_unfav.prism')
+    prop = "R=? [F \"done\"]"
+    properties = stormpy.parse_properties(prop, program, None)
 
-    # formula=properties[0]
+    formula=properties[0]
 
-    # model = stormpy.build_model(program, properties)
-    # rewards = state_rewards_from_model(model)
+    model = stormpy.build_model(program, properties)
+    rewards = state_rewards_from_model(model)
 
-    # df2 = {
-    #     "map": main_map(model, paths_per_run, formula, rewards=rewards),
-    #     "frequentist": main_frequentist(model, paths_per_run, formula, rewards=rewards),
-    #     "lui": main_lui(model, paths_per_run=paths_per_run, formula=formula, rewards=rewards),
-    #     "pac": main_pac(model, paths_per_run=paths_per_run, formula=formula, rewards=rewards),
-    #     # "ucrl2": main_ucrl2(model, paths_per_run, formula)
-    # }
-    # print(df2)
+    df2 = {
+        "map": main_map(model, paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
+        "frequentist": main_frequentist(model, paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
+        "lui": main_lui(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
+        "pac": main_pac(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
+        # "ucrl2": main_ucrl2(model, paths_per_run, formula)
+    }
+    print(df2)
 
     program = stormpy.parse_prism_program('models/bandit.prism')
     prop = "R=? [F \"goal\"]"
@@ -192,10 +193,10 @@ if __name__ == "__main__":
     rewards = rewards_from_model(model)
 
     df3 = {
-        "map": main_map(model, paths_per_run, formula, rewards=rewards),
-        "frequentist": main_frequentist(model, paths_per_run, formula, rewards=rewards),
-        "lui": main_lui(model, paths_per_run=paths_per_run, formula=formula, rewards=rewards),
-        "pac": main_pac(model, paths_per_run=paths_per_run, formula=formula, rewards=rewards),
+        "map": main_map(model, paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
+        "frequentist": main_frequentist(model, paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
+        "lui": main_lui(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
+        "pac": main_pac(model, paths_per_run=paths_per_run, formula=formula, gamma = gamma, rewards=rewards),
         # "ucrl2": main_ucrl2(model, paths_per_run, formula)
     }
 
