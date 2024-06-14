@@ -61,12 +61,14 @@ def value_iteration_next(model, measurement, distance, vs, rewards, gamma):
         { k: v[1] for k, v in maxes.items() }
     )
 
-def compute_optimistic_policy(model, measurement, distance, gamma=0.95, error_bound=1):
+def compute_optimistic_policy(model, measurement, distance, gamma=0.01, error_bound=1):
     max_iter = 200
     if model.reward_models[''].has_state_action_rewards:
         rewards = rewards_from_model(model)
     elif model.reward_models[''].has_state_rewards:
         rewards = state_rewards_from_model(model)
+    else:
+        raise Exception("model has no state-action or state rewards")
     vs = { state.id: 0 for state in model.states }
     error = error_bound + 1
     iter = 0
@@ -89,7 +91,7 @@ def sample_ucrl2(init_model, measurement, policy):
     simulator = stormpy.simulator.create_simulator(init_model, seed=42)
     state, _, _ = simulator.restart()
     time_steps = 0
-    while sa_counter[(state, policy[state])] < max(1, measurement.get_total_frequency(state, policy[state])):
+    while sa_counter[(state, policy[state])] < max(1, measurement.get_total_frequency(state, policy[state])) and not simulator.is_done():
         action = policy[state]
         sa_counter[(state, action)] += 1
         next_state, _, _ = simulator.step(action)
@@ -99,7 +101,7 @@ def sample_ucrl2(init_model, measurement, policy):
     return sas_counter, sa_counter, time_steps
 
 # gamma: discount factor, error_bound: for value iteration
-def ucrl2(init_model, formula, loops=10, delta=0.1, gamma=0.95, error_bound=0.01):
+def ucrl2(init_model, formula, loops=10, delta=0.1, gamma=0.01, error_bound=0.01):
     time = 1
     data = []
     measurement = Measurement()
@@ -125,13 +127,13 @@ def ucrl2(init_model, formula, loops=10, delta=0.1, gamma=0.95, error_bound=0.01
 
 
 if __name__ == "__main__":
-    program = stormpy.parse_prism_program('models/bandit.prism')
-    prop = "R=? [F \"goal\"]"
-    # prop = "R=? [F \"done\"]"
+    program = stormpy.parse_prism_program('models/bet_fav.prism')
+    # prop = "R=? [F \"goal\"]"
+    prop = "R=? [F \"done\"]"
     properties = stormpy.parse_properties(prop, program, None)
     formula = properties[0]
     model = stormpy.build_model(program, properties)
 
-    l1mdp, data = ucrl2(model, formula, loops=10, delta=0.1, gamma=0.95, error_bound=0.1)
+    l1mdp, data = ucrl2(model, formula, loops=30, delta=0.1, gamma=0.01, error_bound=0.1)
     print(l1mdp[0])
     print(data)
