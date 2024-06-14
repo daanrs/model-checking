@@ -62,17 +62,3 @@ def map_create_matrix(model, measurement, prior):
     matrix = builder.build()
 
     return matrix
-
-    
-if __name__ == "__main__":
-    model_file = stormpy.examples.files.prism_mdp_slipgrid
-    model_model = stormpy.parse_prism_program(model_file)
-    model = stormpy.build_model(model_model)
-
-    measurement = simulate(model)
-
-    prior = init_uniform_prior(model, 1000)
-    map_model  = map(model, measurement, prior)
-    print (map_model)
-
-    print(map_model.transition_matrix)

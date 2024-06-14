@@ -7,7 +7,6 @@ import random
 from util import *
 from map import *
 from lui import *
-from scheduler import *
 from frequentist import *
 from pac_learning import *
 from ucrl2 import *

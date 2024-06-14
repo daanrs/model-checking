@@ -45,16 +45,3 @@ def frequentist_create_matrix(model, measurement, ucrl2=False):
     matrix = builder.build()
 
     return matrix
-    
-
-if __name__ == "__main__":
-    model_file = stormpy.examples.files.prism_mdp_slipgrid
-    model_model = stormpy.parse_prism_program(model_file)
-    model = stormpy.build_model(model_model)
-
-    measurement = simulate(model)
-
-    model = frequentist(model, measurement)
-    print (model)
-
-    print(model.transition_matrix)

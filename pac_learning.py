@@ -50,20 +50,3 @@ def pac_create_matrix(model, measurement, error_rate = 0.1, interval_epsilon = 0
     transition_matrix = builder.build()
 
     return transition_matrix
-
-    
-if __name__ == "__main__":
-    model_file = stormpy.examples.files.prism_mdp_slipgrid
-    model_model = stormpy.parse_prism_program(model_file)
-    model = stormpy.build_model(model_model)
-
-    pac = pac_init(model)
-
-    measurement = simulate(model)
-    pac = pac_step(pac, measurement)
-
-    measurement = simulate(model, measurement=measurement)
-    pac = pac_step(pac, measurement)
-
-    print(pac)
-    print(pac.transition_matrix)

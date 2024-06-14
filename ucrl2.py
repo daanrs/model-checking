@@ -123,17 +123,3 @@ def ucrl2(init_model, formula, rewards, loops=10, delta=0.1, gamma=0.01, error_b
     ucrl2_mdp = frequentist(init_model, measurement, ucrl2=True)
     l1mdp = (ucrl2_mdp, distance)
     return l1mdp, data
-
-
-if __name__ == "__main__":
-    program = stormpy.parse_prism_program('models/bandit.prism')
-    prop = "R=? [F \"goal\"]"
-    # prop = "R=? [F \"done\"]"
-    properties = stormpy.parse_properties(prop, program, None)
-    formula = properties[0]
-    model = stormpy.build_model(program, properties)
-    rewards = state_action_rewards_from_model(model)
-
-    l1mdp, data = ucrl2(model, formula, rewards, loops=90)
-    print(l1mdp[0])
-    print(data)
