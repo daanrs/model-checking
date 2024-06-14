@@ -125,11 +125,11 @@ def ucrl2(init_model, formula, loops=10, delta=0.1, gamma=0.01, error_bound=0.01
         result = stormpy.model_checking(model_dtmc, formula)
         initial_state = model_dtmc.initial_states[0]
         value = result.at(initial_state)
-        data.append(value)
+        data.append((number_of_trajectories, value))
     
     ucrl2_mdp = frequentist(init_model, measurement, ucrl2=True)
     l1mdp = (ucrl2_mdp, distance)
-    return l1mdp, data, number_of_trajectories
+    return l1mdp, data
 
 
 if __name__ == "__main__":
@@ -140,7 +140,6 @@ if __name__ == "__main__":
     formula = properties[0]
     model = stormpy.build_model(program, properties)
 
-    l1mdp, data, number_of_trajectories = ucrl2(model, formula)
+    l1mdp, data = ucrl2(model, formula)
     print(l1mdp[0])
     print(data)
-    print("Trajectories: ", number_of_trajectories)
