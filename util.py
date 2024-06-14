@@ -35,7 +35,9 @@ def update_mdp(model, new_matrix):
 
 def state_action_rewards_from_model(model):
     rewards = model.reward_models['']
-    if rewards.has_state_rewards:
+    if rewards.has_state_rewards and rewards.has_state_action_rewards:
+        raise Exception('model has both state and state-action rewards')
+    elif rewards.has_state_rewards:
         return state_rewards_to_state_action_rewards(model)
     elif rewards.has_state_action_rewards:
         return state_action_rewards(model)
